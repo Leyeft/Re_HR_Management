@@ -46,6 +46,9 @@ These moments contributed positively to problem-solving, learning, and refining 
 All final decisions, implementations, and integrations were reviewed, understood, and executed by the project author.
 
 AI tools were used strictly as a **learning aid and development sidekick**, in accordance with course guidelines.
+## Quote of The Project
+
+"Coding is not just about getting things right the first time—it's about laughing at the detours, learning from the bugs, and enjoying the ride." - ChaptGPT
 
 
 ## Link
