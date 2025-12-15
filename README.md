@@ -12,3 +12,7 @@ flowchart TD
     G --> H[Run Migrations<br/>php artisan migrate]
     H --> I[Start Server<br/>php artisan serve]
     I --> J[Access App<br/>http://127.0.0.1:8000]
+
+A[Project Documentation] --> B[Source Code Repository]
+    B --> C[HR Management System]
+    C --> D[https://github.com/Leyeft/HR-Management-System]
