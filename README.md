@@ -30,6 +30,24 @@ and basic role-based access control.
 - Departments
 - Leave Requests
 
+## AI Assistance
+
+This project was developed with the assistance of **ChatGPT (OpenAI)** as a development support tool.
+
+ChatGPT was used to:
+- Explain Laravel concepts and best practices
+- Debug errors and interpret confusing error messages
+- Assist in database design and workflow planning
+- Help structure documentation and Mermaid diagrams
+
+Like any real-world development collaboration, there were moments of miscommunication, iterative clarification, and “wait… that’s not what I meant” discussions.  
+These moments contributed positively to problem-solving, learning, and refining the final system.
+
+All final decisions, implementations, and integrations were reviewed, understood, and executed by the project author.
+
+AI tools were used strictly as a **learning aid and development sidekick**, in accordance with course guidelines.
+
+
 ## Link
 - Visit link below for the public view
 - https://github.com/Leyeft/HR-Management-System
