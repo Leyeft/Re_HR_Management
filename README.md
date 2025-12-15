@@ -4,9 +4,10 @@
 
 # HR Management System
 
-## Project Description
-A web-based HR Management System built with Laravel 12.
-The system manages employees, departments, and leave requests with an approval workflow.
+## Project Overview
+The HR Management System is a web-based application designed to manage employees, departments,
+and leave requests within an organization. It provides an approval workflow for leave requests
+and basic role-based access control.
 
 ## Tech Stack
 - Backend: Laravel 12
