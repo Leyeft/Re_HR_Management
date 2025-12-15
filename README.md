@@ -2,6 +2,35 @@
 ## 🚀 Project Setup Flow
 
 ```mermaid
+# HR Management System
+
+## Project Description
+A web-based HR Management System built with Laravel 12.
+The system manages employees, departments, and leave requests with an approval workflow.
+
+## Tech Stack
+- Backend: Laravel 12
+- Database: MySQL
+- Frontend: Blade (server-rendered views)
+- Authentication: Laravel built-in authentication
+
+## Features
+- User authentication
+- Employee management (CRUD)
+- Department management (CRUD)
+- Leave request submission
+- Leave approval / rejection by Head of Department
+- Leave history tracking
+- Role-based access (Employee, Head, HR, Admin – partial)
+
+## Database
+- Users
+- Employees
+- Departments
+- Leave Requests
+
+Relationships are enforced using foreign keys and migrations.
+
 flowchart TD
     A[Clone Repository] --> B[Install Backend Dependencies<br/>composer install]
     B --> C[Install Frontend Dependencies<br/>npm install]
