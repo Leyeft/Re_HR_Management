@@ -1,7 +1,7 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/lxL_zZuw)
 ## 🚀 Project Setup Flow
 
-```mermaid
+
 # HR Management System
 
 ## Project Description
@@ -30,7 +30,7 @@ The system manages employees, departments, and leave requests with an approval w
 - Leave Requests
 
 Relationships are enforced using foreign keys and migrations.
-
+```mermaid
 flowchart TD
     A[Clone Repository] --> B[Install Backend Dependencies<br/>composer install]
     B --> C[Install Frontend Dependencies<br/>npm install]
@@ -45,3 +45,4 @@ flowchart TD
 A[Project Documentation] --> B[Source Code Repository]
     B --> C[HR Management System]
     C --> D[https://github.com/Leyeft/HR-Management-System]
+'''
