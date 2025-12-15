@@ -30,6 +30,11 @@ and basic role-based access control.
 - Departments
 - Leave Requests
 
+## Link
+- Visit link below for the public view
+- https://github.com/Leyeft/HR-Management-System
+
+
 Relationships are enforced using foreign keys and migrations.
 ```mermaid
 flowchart TD
@@ -44,6 +49,4 @@ flowchart TD
     I --> J[Access App<br/>http://127.0.0.1:8000]
 
 '''
-## Link
-- Visit [https://github.com/Leyeft/HR-Management-System] for the public view
 
