@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\LeaveRequest;
 use App\Models\Employee;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class LeaveApprovalController extends Controller
             ->orderBy('created_at')
             ->paginate(10);
 
-        return view('leave-approvals.index', compact('requests'));
+        return Inertia::render('LeaveApprovals/Index', compact('requests'));
     }
 
     public function approve(LeaveRequest $leave)
@@ -79,7 +80,7 @@ class LeaveApprovalController extends Controller
         ->latest()
         ->paginate(10);
 
-    return view('leave-approvals.history', compact('leaves'));
+    return Inertia::render('LeaveApprovals/History', compact('leaves'));
 }
 
 }

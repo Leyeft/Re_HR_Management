@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\LeaveRequest;
@@ -27,7 +28,7 @@ class DashboardController extends Controller
             'rejected' => LeaveRequest::where('status', 'rejected')->count(),
         ];
 
-        return view('dashboard', compact(
+        return Inertia::render('Dashboard', compact(
             'totalStaff',
             'totalDepartments',
             'labels',

@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Department;
 use Illuminate\Http\Request;
 
@@ -21,13 +22,13 @@ class DepartmentController extends Controller
     public function index()
     {
         $departments = Department::orderBy('name')->get();
-        return view('departments.index', compact('departments'));
+        return Inertia::render('Departments/Index', compact('departments'));
     }
 
     // --- C (Create - Form) ---
     public function create()
     {
-        return view('departments.create');
+        return Inertia::render('Departments/Create');
     }
 
     // --- C (Create - Store) ---
@@ -73,7 +74,7 @@ class DepartmentController extends Controller
     }
     public function edit(Department $department)
 {
-    return view('departments.edit', compact('department'));
+    return Inertia::render('Departments/Edit', compact('department'));
 }
 
 }

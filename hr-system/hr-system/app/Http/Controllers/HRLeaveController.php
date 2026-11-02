@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\LeaveRequest;
 
 class HRLeaveController extends Controller
@@ -17,6 +18,6 @@ class HRLeaveController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('hr.leave.index', compact('leaves'));
+        return Inertia::render('HR/Leave/Index', compact('leaves'));
     }
 }

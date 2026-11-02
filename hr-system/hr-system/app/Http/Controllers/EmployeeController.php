@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\Department;
@@ -45,7 +46,11 @@ class EmployeeController extends Controller
 
     $departments = Department::all();
 
-    return view('employees.index', compact('employees', 'departments'));
+    return Inertia::render('Employees/Index', [
+        'employees' => $employees,
+        'departments' => $departments,
+        'filters' => $request->only('search', 'department', 'rank', 'sort'),
+    ]);
 }
 
 
@@ -55,7 +60,7 @@ class EmployeeController extends Controller
     public function create()
     {
         $departments = Department::all();
-        return view('employees.create', compact('departments'));
+        return Inertia::render('Employees/Create', compact('departments'));
     }
 
     /* =======================
@@ -115,7 +120,7 @@ class EmployeeController extends Controller
         $departments = Department::all();
         $employee->load('user');
 
-        return view('employees.edit', compact('employee', 'departments'));
+        return Inertia::render('Employees/Edit', compact('employee', 'departments'));
     }
 
     /* =======================

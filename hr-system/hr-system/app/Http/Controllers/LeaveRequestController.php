@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 
@@ -15,12 +16,12 @@ class LeaveRequestController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('leave.index', compact('leaves'));
+        return Inertia::render('Leave/Index', compact('leaves'));
     }
 
     public function create()
     {
-        return view('leave.create');
+        return Inertia::render('Leave/Create');
     }
 
     public function store(Request $request)
