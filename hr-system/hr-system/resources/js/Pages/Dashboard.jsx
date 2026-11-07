@@ -1,3 +1,4 @@
+import LeaveBalance from '@/Components/LeaveBalance';
 import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
@@ -15,7 +16,7 @@ import { Bar, Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 // Personal dashboard for staff who don't manage the organisation.
-function PersonalDashboard({ myLeave, isHead }) {
+function PersonalDashboard({ myLeave, isHead, leaveSummary }) {
     const tiles = [
         { label: 'Pending', value: myLeave?.pending ?? 0, tone: 'text-warning' },
         { label: 'Approved', value: myLeave?.approved ?? 0, tone: 'text-success' },
@@ -30,6 +31,8 @@ function PersonalDashboard({ myLeave, isHead }) {
                     Your account isn&apos;t linked to an employee profile yet.
                 </div>
             )}
+
+            <LeaveBalance summary={leaveSummary} />
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {tiles.map((t) => (
@@ -57,12 +60,12 @@ function PersonalDashboard({ myLeave, isHead }) {
     );
 }
 
-export default function Dashboard({ canSeeOrg, myLeave, isHead, totalStaff, totalDepartments, labels, data, leaveStats }) {
+export default function Dashboard({ canSeeOrg, myLeave, isHead, leaveSummary, totalStaff, totalDepartments, labels, data, leaveStats }) {
     if (!canSeeOrg) {
         return (
             <AuthenticatedLayout header={<PageHeader>Dashboard</PageHeader>}>
                 <Head title="Dashboard" />
-                <PersonalDashboard myLeave={myLeave} isHead={isHead} />
+                <PersonalDashboard myLeave={myLeave} isHead={isHead} leaveSummary={leaveSummary} />
             </AuthenticatedLayout>
         );
     }

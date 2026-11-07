@@ -45,6 +45,7 @@ class DashboardController extends Controller
                 'rejected' => (clone $base)->where('status', 'rejected')->count(),
                 'total'    => (clone $base)->count(),
             ] : null,
+            'leaveSummary' => $employee ? $employee->leaveSummary() : null,
         ]);
     }
 }

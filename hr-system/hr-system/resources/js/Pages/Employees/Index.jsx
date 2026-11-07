@@ -1,4 +1,5 @@
 import DangerButton from '@/Components/DangerButton';
+import EmployeeDetails from '@/Components/EmployeeDetails';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
@@ -33,6 +34,9 @@ export default function Index({ employees, departments, filters, roleCounts }) {
     const [department, setDepartment] = useState(filters.department ?? '');
     const [rank, setRank] = useState(filters.rank ?? '');
     const sort = filters.sort ?? 'asc';
+
+    // Employee details popup.
+    const [viewingEmployee, setViewingEmployee] = useState(null);
 
     // Type-to-confirm delete: holds the employee being deleted + the typed text.
     const [confirmingEmployee, setConfirmingEmployee] = useState(null);
@@ -156,6 +160,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Email</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Department</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Rank</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Leave (left/yr)</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">Actions</th>
                                     </tr>
                                 </thead>
@@ -163,7 +168,15 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                 <tbody className="divide-y divide-gray-200 bg-white">
                                     {employees.data.map((employee) => (
                                         <tr key={employee.id}>
-                                            <td className="px-4 py-3">{employee.user.name}</td>
+                                            <td className="px-4 py-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setViewingEmployee(employee)}
+                                                    className="font-medium text-primary hover:underline"
+                                                >
+                                                    {employee.user.name}
+                                                </button>
+                                            </td>
                                             <td className="px-4 py-3">{employee.user.email}</td>
                                             <td className="px-4 py-3">{employee.department?.name ?? '—'}</td>
                                             <td className="px-4 py-3">
@@ -171,6 +184,20 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                                     <span className="rounded bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">Head</span>
                                                 ) : (
                                                     <span className="rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Employee</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {employee.leave_summary ? (
+                                                    <span className="text-sm">
+                                                        <span className="font-medium text-content">
+                                                            {employee.leave_summary.remaining}/{employee.leave_summary.entitlement}
+                                                        </span>
+                                                        <span className="ml-1 text-xs text-muted">
+                                                            ({employee.leave_summary.tier})
+                                                        </span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted">—</span>
                                                 )}
                                             </td>
                                             <td className="space-x-3 px-4 py-3 text-right">
@@ -193,7 +220,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
 
                                     {employees.data.length === 0 && (
                                         <tr>
-                                            <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                                            <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
                                                 No employees found.
                                             </td>
                                         </tr>
@@ -206,6 +233,12 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                     </div>
                 </div>
             </div>
+
+            <EmployeeDetails
+                employee={viewingEmployee}
+                show={!!viewingEmployee}
+                onClose={() => setViewingEmployee(null)}
+            />
 
             <Modal show={!!confirmingEmployee} onClose={closeDeleteModal} maxWidth="md">
                 {protectedInfo ? (

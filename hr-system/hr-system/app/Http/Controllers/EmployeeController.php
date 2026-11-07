@@ -42,7 +42,12 @@ class EmployeeController extends Controller
         ->orderBy('users.name', $sort)
         ->select('employees.*')
         ->paginate(10)
-        ->withQueryString();
+        ->withQueryString()
+        ->through(function ($employee) {
+            // Attach this year's leave entitlement/balance for the table.
+            $employee->setAttribute('leave_summary', $employee->leaveSummary());
+            return $employee;
+        });
 
     $departments = Department::all();
 
@@ -86,6 +91,7 @@ class EmployeeController extends Controller
 
         'department_id' => 'required|exists:departments,id',
         'date_of_birth' => 'required|date',
+        'date_hired' => 'required|date',
     ]);
 
     // ❌ Block invalid combinations
@@ -109,6 +115,7 @@ class EmployeeController extends Controller
         'department_id' => $request->department_id,
         'rank' => $request->rank,
         'date_of_birth' => $request->date_of_birth,
+        'date_hired' => $request->date_hired,
     ]);
 
     return redirect()
@@ -139,6 +146,7 @@ class EmployeeController extends Controller
             'department_id' => 'required|exists:departments,id',
             'rank' => 'required|in:employee,head',
             'date_of_birth' => 'required|date',
+            'date_hired' => 'required|date',
         ]);
 
         // Update user info
@@ -152,6 +160,7 @@ class EmployeeController extends Controller
             'department_id' => $request->department_id,
             'rank' => $request->rank,
             'date_of_birth' => $request->date_of_birth,
+            'date_hired' => $request->date_hired,
         ]);
 
         return redirect()

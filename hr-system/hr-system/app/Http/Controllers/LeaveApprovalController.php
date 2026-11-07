@@ -20,9 +20,15 @@ class LeaveApprovalController extends Controller
 
         $requests = LeaveRequest::where('department_id', $employee->department_id)
             ->where('status', 'pending_head')
-            ->with('employee.user')
+            ->with(['employee.user', 'employee.department'])
             ->orderBy('created_at')
-            ->paginate(10);
+            ->paginate(10)
+            ->through(function ($leave) {
+                if ($leave->employee) {
+                    $leave->employee->setAttribute('leave_summary', $leave->employee->leaveSummary());
+                }
+                return $leave;
+            });
 
         return Inertia::render('LeaveApprovals/Index', compact('requests'));
     }
@@ -80,9 +86,15 @@ class LeaveApprovalController extends Controller
     }
 
     $leaves = LeaveRequest::where('department_id', $employee->department_id)
-        ->with(['employee.user', 'headApprover', 'hrApprover'])
+        ->with(['employee.user', 'employee.department', 'headApprover', 'hrApprover'])
         ->latest()
-        ->paginate(10);
+        ->paginate(10)
+        ->through(function ($leave) {
+            if ($leave->employee) {
+                $leave->employee->setAttribute('leave_summary', $leave->employee->leaveSummary());
+            }
+            return $leave;
+        });
 
     return Inertia::render('LeaveApprovals/History', compact('leaves'));
 }

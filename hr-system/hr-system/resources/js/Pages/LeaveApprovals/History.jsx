@@ -1,10 +1,14 @@
+import EmployeeDetails from '@/Components/EmployeeDetails';
 import LeaveStatus from '@/Components/LeaveStatus';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function History({ leaves }) {
+    const [viewing, setViewing] = useState(null);
+
     return (
         <AuthenticatedLayout header={<PageHeader>Department Leave History</PageHeader>}>
             <Head title="Leave History" />
@@ -23,7 +27,15 @@ export default function History({ leaves }) {
                         <tbody>
                             {leaves.data.map((leave) => (
                                 <tr key={leave.id} className="border-t">
-                                    <td className="p-3">{leave.employee.user.name}</td>
+                                    <td className="p-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewing(leave.employee)}
+                                            className="font-medium text-primary hover:underline"
+                                        >
+                                            {leave.employee.user.name}
+                                        </button>
+                                    </td>
                                     <td className="p-3">{leave.start_date} → {leave.end_date}</td>
                                     <td className="p-3">{leave.reason}</td>
                                     <td className="p-3"><LeaveStatus leave={leave} /></td>
@@ -41,6 +53,8 @@ export default function History({ leaves }) {
 
                 <Pagination links={leaves.links} />
             </div>
+
+            <EmployeeDetails employee={viewing} show={!!viewing} onClose={() => setViewing(null)} />
         </AuthenticatedLayout>
     );
 }

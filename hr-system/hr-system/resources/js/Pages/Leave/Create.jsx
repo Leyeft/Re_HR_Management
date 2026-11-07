@@ -1,17 +1,23 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
+import LeaveBalance from '@/Components/LeaveBalance';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { inclusiveDays } from '@/Utils/leave';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Create() {
+export default function Create({ leaveSummary }) {
     const { data, setData, post, processing, errors } = useForm({
         start_date: '',
         end_date: '',
         reason: '',
     });
+
+    const requestedDays = inclusiveDays(data.start_date, data.end_date);
+    const overLimit =
+        leaveSummary && requestedDays !== null && requestedDays > leaveSummary.remaining;
 
     const submit = (e) => {
         e.preventDefault();
@@ -22,7 +28,9 @@ export default function Create() {
         <AuthenticatedLayout header={<PageHeader>Request Leave</PageHeader>}>
             <Head title="Request Leave" />
 
-            <div className="mx-auto max-w-xl py-8 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-xl space-y-6 py-8 sm:px-6 lg:px-8">
+                <LeaveBalance summary={leaveSummary} />
+
                 <form onSubmit={submit} className="rounded-lg bg-white p-6 shadow">
                     <div>
                         <InputLabel htmlFor="start_date" value="Start Date" />
@@ -52,8 +60,16 @@ export default function Create() {
                         <InputError message={errors.reason} className="mt-1" />
                     </div>
 
+                    {requestedDays !== null && (
+                        <p className={`mt-4 text-sm ${overLimit ? 'text-danger' : 'text-muted'}`}>
+                            This request is {requestedDays} day{requestedDays === 1 ? '' : 's'}.
+                            {overLimit &&
+                                ` That's more than your ${leaveSummary.remaining} remaining this year — please visit the HR office for more details, or if you need help.`}
+                        </p>
+                    )}
+
                     <div className="mt-6 flex justify-end">
-                        <PrimaryButton disabled={processing}>Submit Request</PrimaryButton>
+                        <PrimaryButton disabled={processing || overLimit}>Submit Request</PrimaryButton>
                     </div>
                 </form>
             </div>

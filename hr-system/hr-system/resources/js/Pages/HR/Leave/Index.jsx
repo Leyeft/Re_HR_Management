@@ -1,12 +1,14 @@
+import EmployeeDetails from '@/Components/EmployeeDetails';
 import InputError from '@/Components/InputError';
 import LeaveStatus from '@/Components/LeaveStatus';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 // One row. Requests waiting on HR get Approve/Reject controls; others just show status.
-function LeaveRow({ leave }) {
+function LeaveRow({ leave, onView }) {
     const { data, setData, post, processing, errors } = useForm({
         rejection_reason: '',
     });
@@ -24,7 +26,15 @@ function LeaveRow({ leave }) {
 
     return (
         <tr className="border-t align-top">
-            <td className="p-3">{leave.employee?.user?.name}</td>
+            <td className="p-3">
+                <button
+                    type="button"
+                    onClick={() => onView(leave.employee)}
+                    className="font-medium text-primary hover:underline"
+                >
+                    {leave.employee?.user?.name}
+                </button>
+            </td>
             <td className="p-3">{leave.employee?.department?.name ?? '—'}</td>
             <td className="p-3">{leave.start_date} → {leave.end_date}</td>
             <td className="p-3"><LeaveStatus leave={leave} /></td>
@@ -68,6 +78,8 @@ function LeaveRow({ leave }) {
 }
 
 export default function Index({ leaves }) {
+    const [viewing, setViewing] = useState(null);
+
     return (
         <AuthenticatedLayout header={<PageHeader>All Leave Requests</PageHeader>}>
             <Head title="All Leave Requests" />
@@ -91,7 +103,7 @@ export default function Index({ leaves }) {
                         </thead>
                         <tbody>
                             {leaves.data.map((leave) => (
-                                <LeaveRow key={leave.id} leave={leave} />
+                                <LeaveRow key={leave.id} leave={leave} onView={setViewing} />
                             ))}
 
                             {leaves.data.length === 0 && (
@@ -105,6 +117,8 @@ export default function Index({ leaves }) {
 
                 <Pagination links={leaves.links} />
             </div>
+
+            <EmployeeDetails employee={viewing} show={!!viewing} onClose={() => setViewing(null)} />
         </AuthenticatedLayout>
     );
 }

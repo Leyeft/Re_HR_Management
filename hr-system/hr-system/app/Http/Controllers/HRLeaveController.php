@@ -16,7 +16,13 @@ class HRLeaveController extends Controller
             // Requests waiting on HR float to the top, then newest first.
             ->orderByRaw("status = 'pending_hr' DESC")
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->through(function ($leave) {
+                if ($leave->employee) {
+                    $leave->employee->setAttribute('leave_summary', $leave->employee->leaveSummary());
+                }
+                return $leave;
+            });
 
         return Inertia::render('HR/Leave/Index', compact('leaves'));
     }

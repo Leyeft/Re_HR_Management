@@ -21,9 +21,17 @@ class LeaveRequest extends Model
     ];
 
     protected $casts = [
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
         'head_approved_at' => 'datetime',
         'hr_approved_at' => 'datetime',
     ];
+
+    // Number of calendar days this request covers (inclusive of both ends).
+    public function days(): int
+    {
+        return $this->start_date->diffInDays($this->end_date) + 1;
+    }
 
     public function employee()
     {

@@ -1,10 +1,11 @@
+import LeaveBalance from '@/Components/LeaveBalance';
 import LeaveStatus from '@/Components/LeaveStatus';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function Index({ leaves, hasProfile = true }) {
+export default function Index({ leaves, hasProfile = true, leaveSummary = null }) {
     return (
         <AuthenticatedLayout header={<PageHeader>My Leave Requests</PageHeader>}>
             <Head title="My Leave Requests" />
@@ -15,6 +16,12 @@ export default function Index({ leaves, hasProfile = true }) {
                         Your account isn&apos;t linked to an employee profile, so you have no
                         personal leave requests. Admin and HR accounts manage leave for others
                         rather than submitting their own.
+                    </div>
+                )}
+
+                {hasProfile && leaveSummary && (
+                    <div className="mb-4">
+                        <LeaveBalance summary={leaveSummary} />
                     </div>
                 )}
 

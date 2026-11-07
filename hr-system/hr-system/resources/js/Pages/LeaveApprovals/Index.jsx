@@ -1,11 +1,13 @@
+import EmployeeDetails from '@/Components/EmployeeDetails';
 import InputError from '@/Components/InputError';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 // One table row, with its own reject-reason form.
-function ApprovalRow({ leave }) {
+function ApprovalRow({ leave, onView }) {
     const { data, setData, post, processing, errors } = useForm({
         rejection_reason: '',
     });
@@ -21,7 +23,15 @@ function ApprovalRow({ leave }) {
 
     return (
         <tr className="border-t">
-            <td className="p-3">{leave.employee.user.name}</td>
+            <td className="p-3">
+                <button
+                    type="button"
+                    onClick={() => onView(leave.employee)}
+                    className="font-medium text-primary hover:underline"
+                >
+                    {leave.employee.user.name}
+                </button>
+            </td>
             <td className="p-3">{leave.start_date} → {leave.end_date}</td>
             <td className="p-3">{leave.reason}</td>
             <td className="p-3 text-right">
@@ -60,6 +70,8 @@ function ApprovalRow({ leave }) {
 }
 
 export default function Index({ requests }) {
+    const [viewing, setViewing] = useState(null);
+
     return (
         <AuthenticatedLayout header={<PageHeader>Leave Approvals</PageHeader>}>
             <Head title="Leave Approvals" />
@@ -81,7 +93,7 @@ export default function Index({ requests }) {
                         </thead>
                         <tbody>
                             {requests.data.map((leave) => (
-                                <ApprovalRow key={leave.id} leave={leave} />
+                                <ApprovalRow key={leave.id} leave={leave} onView={setViewing} />
                             ))}
 
                             {requests.data.length === 0 && (
@@ -95,6 +107,8 @@ export default function Index({ requests }) {
 
                 <Pagination links={requests.links} />
             </div>
+
+            <EmployeeDetails employee={viewing} show={!!viewing} onClose={() => setViewing(null)} />
         </AuthenticatedLayout>
     );
 }

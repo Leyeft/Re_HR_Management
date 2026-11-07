@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { tierFromYears, yearsSince } from '@/Utils/leave';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function Edit({ employee, departments }) {
@@ -12,9 +13,12 @@ export default function Edit({ employee, departments }) {
         name: employee.user.name,
         email: employee.user.email,
         date_of_birth: employee.date_of_birth ?? '',
+        date_hired: employee.date_hired ?? '',
         department_id: employee.department_id,
         rank: employee.rank,
     });
+
+    const tier = data.date_hired ? tierFromYears(yearsSince(data.date_hired)) : null;
 
     const submit = (e) => {
         e.preventDefault();
@@ -46,6 +50,18 @@ export default function Edit({ employee, departments }) {
                         <TextInput id="date_of_birth" type="date" className="mt-1 block w-full" value={data.date_of_birth}
                             onChange={(e) => setData('date_of_birth', e.target.value)} required />
                         <InputError message={errors.date_of_birth} className="mt-1" />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="date_hired" value="Date Hired" />
+                        <TextInput id="date_hired" type="date" className="mt-1 block w-full" value={data.date_hired}
+                            onChange={(e) => setData('date_hired', e.target.value)} required />
+                        {tier && (
+                            <p className="mt-1 text-xs text-muted">
+                                Leave entitlement: <span className="font-medium text-content">{tier.label} · {tier.days} days/year</span>
+                            </p>
+                        )}
+                        <InputError message={errors.date_hired} className="mt-1" />
                     </div>
 
                     <div>
