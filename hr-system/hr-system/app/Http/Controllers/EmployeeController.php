@@ -109,10 +109,11 @@ class EmployeeController extends Controller
         'role' => $request->role, // ✅ FIXED
     ]);
 
-    // Create employee
+    // Create employee with an auto-generated, department-based code.
     Employee::create([
         'user_id' => $user->id,
         'department_id' => $request->department_id,
+        'employee_code' => Employee::generateCode((int) $request->department_id),
         'rank' => $request->rank,
         'date_of_birth' => $request->date_of_birth,
         'date_hired' => $request->date_hired,
@@ -123,6 +124,22 @@ class EmployeeController extends Controller
         ->with('success', 'Employee created successfully');
 }
 
+
+    /* =======================
+     * SHOW (profile page)
+     * ======================= */
+    public function show(Employee $employee)
+    {
+        $employee->load(['user', 'department']);
+        $employee->setAttribute('leave_summary', $employee->leaveSummary());
+
+        $leaves = $employee->leaveRequests()
+            ->with(['headApprover', 'hrApprover'])
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('Employees/Show', compact('employee', 'leaves'));
+    }
 
     /* =======================
      * EDIT

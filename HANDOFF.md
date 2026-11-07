@@ -35,11 +35,38 @@ _Last updated: 2026-11-07_
   is blocked (themed in-modal message + server backstop) so the realm always keeps a ruler and a healer.
 - **Theme** applied app-wide (navy/teal) — see Branding & theme below.
 
-**Still open:** #4 (edit can't change role), #6 (department `cascadeOnDelete`), #7 (department update
-name uniqueness), #10 (a Head can approve their own request), #14 (`APP_NAME`), #15 (tests), #16 (seeder).
+**New features (later on 2026-11-07, committed `648c023` onward):**
+- **Leave entitlement by years of service** (from a new **Date Hired** field): <1y=3, 1–7y=10, 8–15y=15,
+  16+y=20. Enforced on annual requests; balance shown on dashboard, leave pages, request form,
+  employee list, create/edit. (migration `...000002_add_date_hired_to_employees`)
+- **Employee details popup** (click a name) on Employees, Approvals, History, All Leave — shows profile +
+  this year's leave entries. **"View more"** (Admin/HR) opens a full **profile page** `employees/{id}`
+  with full leave history and approver names.
+- **Employee ID** = `department_id * 100000 + sequence` (e.g. 100001, 200001), auto-assigned on create,
+  permanent. (migration `...000004_add_employee_code_to_employees`)
+- **Leave types**: annual (counts, Head→HR), **sick** (own 30-day/yr cap, past dates allowed,
+  auto-recorded no approval), **professional** (no limit, Head→HR).
+  (migration `...000003_add_type_to_leave_requests`)
+- **A Head's own leave skips to HR** (can't self-approve).
+- **Overlap check**: can't submit a request overlapping a live one.
+- **Cancel a request** (owner only) with a required reason → status `cancelled`.
+  (migration `...000005_add_cancel_to_leave_requests`)
+- **Department delete blocked** when it still has employees (castle message + server backstop);
+  Departments list shows an employee count.
 
-**New DB migrations to run on another machine:** `php artisan migrate` applies
-`2026_11_07_000000_add_hr_stage_to_leave_requests` and `2026_11_07_000001_add_description_to_departments`.
+**Still open / to decide (next up):**
+- #4 edit can't change an employee's `role` after creation.
+- #7 department rename doesn't check for a duplicate name.
+- #14 `APP_NAME` still "Laravel".
+- #15 no automated tests; #16 no sample-data seeder.
+- Policy choices raised, not yet done: **calendar vs working days** for leave counts;
+  **"last head" protection** (a department can end up with no Head to approve); year-boundary leave
+  counts against the start year only.
+- Employee ID is 7 digits once a department id reaches 10 (still unique) — left as-is unless we
+  decide to zero-pad to fixed width.
+
+**Run `php artisan migrate`** on any other machine to apply all six 2026-11-07 migrations
+(HR stage, department description, date hired, leave type, employee code, cancel).
 
 ## Local setup (done on this PC on 2026-11-03)
 

@@ -1,6 +1,8 @@
 import LeaveStatus from '@/Components/LeaveStatus';
+import LeaveTypeBadge from '@/Components/LeaveTypeBadge';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
+import { Link, usePage } from '@inertiajs/react';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 
@@ -17,6 +19,8 @@ function Row({ label, children }) {
 // department, and (when available) its leave_summary.
 export default function EmployeeDetails({ employee, show, onClose }) {
     const ls = employee?.leave_summary;
+    const role = usePage().props.auth?.user?.role;
+    const canViewMore = role === 'admin' || role === 'hr';
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
@@ -34,6 +38,7 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                 </div>
 
                 <dl>
+                    <Row label="Employee ID"><span className="font-mono">{employee?.employee_code}</span></Row>
                     <Row label="Department">{employee?.department?.name}</Row>
                     <Row label="System role">{ROLE_LABELS[employee?.user?.role] ?? employee?.user?.role}</Row>
                     <Row label="Date of birth">{employee?.date_of_birth}</Row>
@@ -41,9 +46,14 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                     {ls && (
                         <>
                             <Row label="Years of service">{ls.years_of_service}</Row>
-                            <Row label="Leave tier">{ls.tier} · {ls.entitlement} days/yr</Row>
-                            <Row label={`Leave this year (${ls.year})`}>
-                                {ls.remaining} left · {ls.taken} used · {ls.pending} pending
+                            <Row label="Annual leave">
+                                {ls.annual.remaining}/{ls.annual.entitlement} left ({ls.tier})
+                            </Row>
+                            <Row label="Sick leave">
+                                {ls.sick.remaining}/{ls.sick.cap} left
+                            </Row>
+                            <Row label="Professional leave">
+                                {ls.professional.taken} used · no limit
                             </Row>
                         </>
                     )}
@@ -59,6 +69,7 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                                 <table className="w-full text-sm">
                                     <thead className="bg-bg text-left text-xs uppercase text-muted">
                                         <tr>
+                                            <th className="p-2">Type</th>
                                             <th className="p-2">Dates</th>
                                             <th className="p-2">Days</th>
                                             <th className="p-2">Requested on</th>
@@ -68,6 +79,7 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                                     <tbody>
                                         {ls.entries.map((e) => (
                                             <tr key={e.id} className="border-t border-line align-top">
+                                                <td className="p-2"><LeaveTypeBadge type={e.type} /></td>
                                                 <td className="p-2">{e.start_date} → {e.end_date}</td>
                                                 <td className="p-2">{e.days}</td>
                                                 <td className="p-2">{e.requested_on ?? '—'}</td>
@@ -83,8 +95,16 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                     </div>
                 )}
 
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-end gap-3">
                     <SecondaryButton onClick={onClose}>Close</SecondaryButton>
+                    {canViewMore && employee?.id && (
+                        <Link
+                            href={route('employees.show', employee.id)}
+                            className="inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-primary-hover"
+                        >
+                            View more
+                        </Link>
+                    )}
                 </div>
             </div>
         </Modal>

@@ -14,10 +14,21 @@ class Employee extends Model
     protected $fillable = [
         'user_id',
         'department_id',
+        'employee_code',
         'rank',
         'date_of_birth',
         'date_hired',
     ];
+
+    // Next employee code for a department: deptId * 100000 + next sequence.
+    public static function generateCode(int $departmentId): int
+    {
+        $base = $departmentId * 100000;
+        $maxInDept = (int) static::where('department_id', $departmentId)->max('employee_code');
+        $lastSeq = $maxInDept > $base ? ($maxInDept - $base) : 0;
+
+        return $base + $lastSeq + 1;
+    }
 
     protected $casts = [
         'date_of_birth' => 'date:Y-m-d',
@@ -67,36 +78,56 @@ class Employee extends Model
         };
     }
 
-    // Entitlement + how much is used/pending/left this year, the individual leave
-    // entries, and the tier — for the UI and for enforcement.
+    // Sick leave allowance per calendar year.
+    public const SICK_DAYS_PER_YEAR = 30;
+
+    // Per-type entitlement, usage and the entry list for a year — for the UI and enforcement.
     public function leaveSummary(?int $year = null): array
     {
         $year ??= now()->year;
-        $entitlement = $this->leaveEntitlement();
 
-        // One query for the year; counts and the entry list are derived from it.
+        // One query for the year; everything below is derived from it.
         $leaves = $this->leaveRequests()
             ->whereYear('start_date', $year)
             ->orderByDesc('start_date')
             ->get();
 
-        $daysFor = fn (array $statuses) => (int) $leaves
+        $days = fn (string $type, array $statuses) => (int) $leaves
+            ->where('type', $type)
             ->whereIn('status', $statuses)
             ->sum(fn ($leave) => $leave->days());
 
-        $taken = $daysFor(['approved']);
-        $pending = $daysFor(['pending_head', 'pending_hr']);
+        $annualEnt = $this->leaveEntitlement();
+        $annualTaken = $days('annual', ['approved']);
+        $annualPending = $days('annual', ['pending_head', 'pending_hr']);
+
+        $sickTaken = $days('sick', ['approved']); // sick is auto-approved
+
+        $profTaken = $days('professional', ['approved']);
+        $profPending = $days('professional', ['pending_head', 'pending_hr']);
 
         return [
             'year' => $year,
             'years_of_service' => $this->yearsOfService(),
             'tier' => $this->leaveTierLabel(),
-            'entitlement' => $entitlement,
-            'taken' => $taken,
-            'pending' => $pending,
-            'remaining' => max(0, $entitlement - $taken - $pending),
+            'annual' => [
+                'entitlement' => $annualEnt,
+                'taken' => $annualTaken,
+                'pending' => $annualPending,
+                'remaining' => max(0, $annualEnt - $annualTaken - $annualPending),
+            ],
+            'sick' => [
+                'cap' => self::SICK_DAYS_PER_YEAR,
+                'taken' => $sickTaken,
+                'remaining' => max(0, self::SICK_DAYS_PER_YEAR - $sickTaken),
+            ],
+            'professional' => [
+                'taken' => $profTaken,
+                'pending' => $profPending,
+            ],
             'entries' => $leaves->map(fn ($leave) => [
                 'id' => $leave->id,
+                'type' => $leave->type,
                 'start_date' => $leave->start_date->format('Y-m-d'),
                 'end_date' => $leave->end_date->format('Y-m-d'),
                 'days' => $leave->days(),

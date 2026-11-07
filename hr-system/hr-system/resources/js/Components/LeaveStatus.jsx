@@ -3,6 +3,7 @@ const styles = {
     pending_hr: 'bg-info-bg text-info',
     approved: 'bg-success-bg text-success',
     rejected: 'bg-danger-bg text-danger',
+    cancelled: 'bg-bg text-muted',
 };
 
 const labels = {
@@ -10,6 +11,7 @@ const labels = {
     pending_hr: 'Awaiting HR',
     approved: 'Approved',
     rejected: 'Rejected',
+    cancelled: 'Cancelled',
 };
 
 // Coloured badge for a leave request's status in the two-step (Head → HR) flow,
@@ -33,6 +35,12 @@ export default function LeaveStatus({ leave }) {
             {leave.status === 'rejected' && leave.rejection_reason && (
                 <div className="mt-1 text-xs text-muted">
                     Reason: {leave.rejection_reason}
+                </div>
+            )}
+
+            {leave.status === 'cancelled' && leave.cancellation_reason && (
+                <div className="mt-1 text-xs text-muted">
+                    Cancelled: {leave.cancellation_reason}
                 </div>
             )}
         </>

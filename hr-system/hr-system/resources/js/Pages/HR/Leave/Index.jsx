@@ -1,6 +1,7 @@
 import EmployeeDetails from '@/Components/EmployeeDetails';
 import InputError from '@/Components/InputError';
 import LeaveStatus from '@/Components/LeaveStatus';
+import LeaveTypeBadge from '@/Components/LeaveTypeBadge';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -36,6 +37,7 @@ function LeaveRow({ leave, onView }) {
                 </button>
             </td>
             <td className="p-3">{leave.employee?.department?.name ?? '—'}</td>
+            <td className="p-3"><LeaveTypeBadge type={leave.type} /></td>
             <td className="p-3">{leave.start_date} → {leave.end_date}</td>
             <td className="p-3"><LeaveStatus leave={leave} /></td>
             <td className="p-3 text-right">
@@ -96,6 +98,7 @@ export default function Index({ leaves }) {
                             <tr>
                                 <th className="p-3">Employee</th>
                                 <th className="p-3">Department</th>
+                                <th className="p-3">Type</th>
                                 <th className="p-3">Dates</th>
                                 <th className="p-3">Status</th>
                                 <th className="p-3 text-right">Action</th>
@@ -108,7 +111,7 @@ export default function Index({ leaves }) {
 
                             {leaves.data.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-6 text-center text-gray-500">No leave requests found.</td>
+                                    <td colSpan="6" className="p-6 text-center text-gray-500">No leave requests found.</td>
                                 </tr>
                             )}
                         </tbody>

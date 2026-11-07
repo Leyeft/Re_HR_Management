@@ -1,3 +1,9 @@
+export const LEAVE_TYPE_LABELS = {
+    annual: 'Annual',
+    sick: 'Sick',
+    professional: 'Professional',
+};
+
 // Leave entitlement tiers by years of service. Mirrors App\Models\Employee.
 export function tierFromYears(years) {
     if (years < 1) return { label: 'Under 1 year', days: 3 };

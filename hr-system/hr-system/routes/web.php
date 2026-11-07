@@ -67,6 +67,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/leave-requests', [LeaveRequestController::class, 'store'])
         ->name('leave.store');
 
+    Route::post('/leave-requests/{leave}/cancel', [LeaveRequestController::class, 'cancel'])
+        ->name('leave.cancel');
+
     /*
     |--------------------------------------------------------------------------
     | Head of Department (Approve / Reject)
@@ -104,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
     // No detail ('show') pages exist, so those routes are excluded.
     Route::middleware(\App\Http\Middleware\EnsureAdminOrHr::class)->group(function () {
         Route::resource('departments', DepartmentController::class)->except('show');
-        Route::resource('employees', EmployeeController::class)->except('show');
+        Route::resource('employees', EmployeeController::class); // includes show (profile page)
     });
 });
 

@@ -21,7 +21,7 @@ class DepartmentController extends Controller
     // --- R (Read - Index/List) ---
     public function index()
     {
-        $departments = Department::orderBy('name')->get();
+        $departments = Department::withCount('employees')->orderBy('name')->get();
         return Inertia::render('Departments/Index', compact('departments'));
     }
 
@@ -67,6 +67,15 @@ class DepartmentController extends Controller
     // --- D (Delete) ---
     public function destroy(Department $department)
     {
+        // Can't delete a department that still has employees.
+        if ($department->employees()->exists()) {
+            return back()->with('error',
+                '🏰 "Halt! The castle still has residents." Thou wouldst demolish a department with '
+                . 'employees still inside? Even the cruelest king evacuates first. Move them elsewhere, '
+                . 'then return with thy wrecking ram.'
+            );
+        }
+
         $department->delete();
 
         return redirect()->route('departments.index')

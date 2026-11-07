@@ -46,6 +46,7 @@ class DashboardController extends Controller
                 'total'    => (clone $base)->count(),
             ] : null,
             'leaveSummary' => $employee ? $employee->leaveSummary() : null,
+            'employeeCode' => $employee?->employee_code,
         ]);
     }
 }

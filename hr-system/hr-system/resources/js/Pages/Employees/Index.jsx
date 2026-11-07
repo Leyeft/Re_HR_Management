@@ -156,6 +156,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">ID</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Name</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Email</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Department</th>
@@ -168,6 +169,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                 <tbody className="divide-y divide-gray-200 bg-white">
                                     {employees.data.map((employee) => (
                                         <tr key={employee.id}>
+                                            <td className="px-4 py-3 font-mono text-sm text-muted">{employee.employee_code}</td>
                                             <td className="px-4 py-3">
                                                 <button
                                                     type="button"
@@ -190,7 +192,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                                 {employee.leave_summary ? (
                                                     <span className="text-sm">
                                                         <span className="font-medium text-content">
-                                                            {employee.leave_summary.remaining}/{employee.leave_summary.entitlement}
+                                                            {employee.leave_summary.annual.remaining}/{employee.leave_summary.annual.entitlement}
                                                         </span>
                                                         <span className="ml-1 text-xs text-muted">
                                                             ({employee.leave_summary.tier})
@@ -220,7 +222,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
 
                                     {employees.data.length === 0 && (
                                         <tr>
-                                            <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
+                                            <td colSpan="7" className="px-4 py-6 text-center text-gray-500">
                                                 No employees found.
                                             </td>
                                         </tr>

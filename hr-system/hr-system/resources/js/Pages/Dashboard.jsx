@@ -16,7 +16,7 @@ import { Bar, Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 // Personal dashboard for staff who don't manage the organisation.
-function PersonalDashboard({ myLeave, isHead, leaveSummary }) {
+function PersonalDashboard({ myLeave, isHead, leaveSummary, employeeCode }) {
     const tiles = [
         { label: 'Pending', value: myLeave?.pending ?? 0, tone: 'text-warning' },
         { label: 'Approved', value: myLeave?.approved ?? 0, tone: 'text-success' },
@@ -29,6 +29,13 @@ function PersonalDashboard({ myLeave, isHead, leaveSummary }) {
             {!myLeave && (
                 <div className="rounded-lg bg-info-bg p-4 text-sm text-info">
                     Your account isn&apos;t linked to an employee profile yet.
+                </div>
+            )}
+
+            {employeeCode && (
+                <div className="rounded-lg bg-white p-4 shadow">
+                    <span className="text-sm text-muted">Your Employee ID: </span>
+                    <span className="font-mono text-lg font-semibold text-primary">{employeeCode}</span>
                 </div>
             )}
 
@@ -60,12 +67,12 @@ function PersonalDashboard({ myLeave, isHead, leaveSummary }) {
     );
 }
 
-export default function Dashboard({ canSeeOrg, myLeave, isHead, leaveSummary, totalStaff, totalDepartments, labels, data, leaveStats }) {
+export default function Dashboard({ canSeeOrg, myLeave, isHead, leaveSummary, employeeCode, totalStaff, totalDepartments, labels, data, leaveStats }) {
     if (!canSeeOrg) {
         return (
             <AuthenticatedLayout header={<PageHeader>Dashboard</PageHeader>}>
                 <Head title="Dashboard" />
-                <PersonalDashboard myLeave={myLeave} isHead={isHead} leaveSummary={leaveSummary} />
+                <PersonalDashboard myLeave={myLeave} isHead={isHead} leaveSummary={leaveSummary} employeeCode={employeeCode} />
             </AuthenticatedLayout>
         );
     }

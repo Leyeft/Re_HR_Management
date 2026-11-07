@@ -87,6 +87,10 @@ export default function Create({ departments }) {
                         <InputError message={errors.role} className="mt-1" />
                     </div>
 
+                    <div className="rounded-md bg-bg px-4 py-2 text-xs text-muted">
+                        An Employee ID (e.g. 100001) is assigned automatically from the chosen department when you save.
+                    </div>
+
                     <div>
                         <InputLabel htmlFor="department_id" value="Department" />
                         <SelectInput id="department_id" className="mt-1 block w-full" value={data.department_id}

@@ -1,5 +1,6 @@
 import EmployeeDetails from '@/Components/EmployeeDetails';
 import LeaveStatus from '@/Components/LeaveStatus';
+import LeaveTypeBadge from '@/Components/LeaveTypeBadge';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -19,6 +20,7 @@ export default function History({ leaves }) {
                         <thead className="bg-gray-100 text-left text-sm">
                             <tr>
                                 <th className="p-3">Employee</th>
+                                <th className="p-3">Type</th>
                                 <th className="p-3">Dates</th>
                                 <th className="p-3">Reason</th>
                                 <th className="p-3">Status</th>
@@ -36,6 +38,7 @@ export default function History({ leaves }) {
                                             {leave.employee.user.name}
                                         </button>
                                     </td>
+                                    <td className="p-3"><LeaveTypeBadge type={leave.type} /></td>
                                     <td className="p-3">{leave.start_date} → {leave.end_date}</td>
                                     <td className="p-3">{leave.reason}</td>
                                     <td className="p-3"><LeaveStatus leave={leave} /></td>
@@ -44,7 +47,7 @@ export default function History({ leaves }) {
 
                             {leaves.data.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="p-6 text-center text-gray-500">No leave records found.</td>
+                                    <td colSpan="5" className="p-6 text-center text-gray-500">No leave records found.</td>
                                 </tr>
                             )}
                         </tbody>
