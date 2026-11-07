@@ -14,12 +14,12 @@ class LeaveApprovalController extends Controller
     {
         $employee = auth()->user()->employee;
 
-        // if ($employee->rank !== 'head') {
-        //     abort(403);
-        // }
+        if (! $employee || $employee->rank !== 'head') {
+            abort(403);
+        }
 
         $requests = LeaveRequest::where('department_id', $employee->department_id)
-            ->where('status', 'pending')
+            ->where('status', 'pending_head')
             ->with('employee.user')
             ->orderBy('created_at')
             ->paginate(10);
@@ -31,12 +31,15 @@ class LeaveApprovalController extends Controller
     {
         $this->authorizeAction($leave);
 
+        // Head sign-off forwards the request to HR for final approval.
         $leave->update([
-            'status' => 'approved',
+            'status' => 'pending_hr',
             'rejection_reason' => null,
+            'head_approved_by' => auth()->id(),
+            'head_approved_at' => now(),
         ]);
 
-        return back()->with('success', 'Leave approved');
+        return back()->with('success', 'Approved and sent to HR for final sign-off');
     }
 
     public function reject(Request $request, LeaveRequest $leave)
@@ -60,9 +63,10 @@ class LeaveApprovalController extends Controller
         $employee = auth()->user()->employee;
 
         if (
+            ! $employee ||
             $employee->rank !== 'head' ||
             $employee->department_id !== $leave->department_id ||
-            $leave->status !== 'pending'
+            $leave->status !== 'pending_head'
         ) {
             abort(403);
         }
@@ -71,12 +75,12 @@ class LeaveApprovalController extends Controller
 {
     $employee = auth()->user()->employee;
 
-    if ($employee->rank !== 'head') {
+    if (! $employee || $employee->rank !== 'head') {
         abort(403);
     }
 
     $leaves = LeaveRequest::where('department_id', $employee->department_id)
-        ->with(['employee.user'])
+        ->with(['employee.user', 'headApprover', 'hrApprover'])
         ->latest()
         ->paginate(10);
 

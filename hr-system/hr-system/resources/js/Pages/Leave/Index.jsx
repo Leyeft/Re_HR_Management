@@ -4,17 +4,27 @@ import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function Index({ leaves }) {
+export default function Index({ leaves, hasProfile = true }) {
     return (
         <AuthenticatedLayout header={<PageHeader>My Leave Requests</PageHeader>}>
             <Head title="My Leave Requests" />
 
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-                <div className="mb-4 flex justify-end">
-                    <Link href={route('leave.create')} className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-                        + Request Leave
-                    </Link>
-                </div>
+                {!hasProfile && (
+                    <div className="mb-4 rounded-lg bg-info-bg p-4 text-sm text-info">
+                        Your account isn&apos;t linked to an employee profile, so you have no
+                        personal leave requests. Admin and HR accounts manage leave for others
+                        rather than submitting their own.
+                    </div>
+                )}
+
+                {hasProfile && (
+                    <div className="mb-4 flex justify-end">
+                        <Link href={route('leave.create')} className="rounded bg-primary px-4 py-2 text-white hover:bg-primary-hover">
+                            + Request Leave
+                        </Link>
+                    </div>
+                )}
 
                 <div className="overflow-hidden rounded-lg bg-white shadow">
                     <table className="w-full">

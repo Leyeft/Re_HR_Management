@@ -50,6 +50,11 @@ class EmployeeController extends Controller
         'employees' => $employees,
         'departments' => $departments,
         'filters' => $request->only('search', 'department', 'rank', 'sort'),
+        // Used by the delete dialog to protect the last Admin / HR account.
+        'roleCounts' => [
+            'admin' => User::where('role', 'admin')->count(),
+            'hr' => User::where('role', 'hr')->count(),
+        ],
     ]);
 }
 
@@ -132,7 +137,7 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $employee->user_id,
             'department_id' => 'required|exists:departments,id',
-            'rank' => 'required|in:employee,head,admin,hr',
+            'rank' => 'required|in:employee,head',
             'date_of_birth' => 'required|date',
         ]);
 
@@ -159,8 +164,20 @@ class EmployeeController extends Controller
      * ======================= */
     public function destroy(Employee $employee)
     {
-        // This will also delete employee due to cascade
-        $employee->user->delete();
+        $user = $employee->user;
+
+        // Never leave the system without an HR account to sign off leave.
+        if ($user->role === 'hr' && User::where('role', 'hr')->count() <= 1) {
+            return back()->with('error', '🛡️ "A knight never strikes the last healer." ’Tis the final HR of the kingdom! Slay them, and who shall tend the wounded spirits of the payroll-stricken? Assign another HR first.');
+        }
+
+        // Never leave the system without an admin to run it.
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', '👑 "The crown cannot be left upon an empty throne!" Thou wouldst dethrone the last admin of this realm? Crown a worthy heir first, lest the castle gates lock forever (and nobody gets paid on Friday).');
+        }
+
+        // This will also delete the employee row due to cascade.
+        $user->delete();
 
         return redirect()
             ->route('employees.index')

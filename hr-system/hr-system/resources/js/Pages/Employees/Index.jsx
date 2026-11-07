@@ -1,15 +1,69 @@
+import DangerButton from '@/Components/DangerButton';
+import InputLabel from '@/Components/InputLabel';
+import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
+import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Index({ employees, departments, filters }) {
+const CONFIRM_WORD = 'DELETE';
+
+// Themed blockers shown when deleting would remove the last Admin / HR.
+const PROTECTED = {
+    admin: {
+        icon: '👑',
+        title: 'The crown cannot be left upon an empty throne!',
+        body: 'Thou wouldst dethrone the last admin of this realm? With no ruler, the castle gates shall lock forever and none shall enter, not even thee. Crown a worthy heir first, lest the realm fall into eternal darkness (and nobody gets paid on Friday).',
+        heir: 'Crown an heir',
+    },
+    hr: {
+        icon: '🛡️',
+        title: 'A knight never strikes the last healer.',
+        body: '’Tis the final HR of the kingdom! Slay them, and who shall tend the wounded spirits of the payroll-stricken? Appoint another healer first.',
+        heir: 'Appoint a healer',
+    },
+};
+
+export default function Index({ employees, departments, filters, roleCounts }) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [department, setDepartment] = useState(filters.department ?? '');
     const [rank, setRank] = useState(filters.rank ?? '');
     const sort = filters.sort ?? 'asc';
+
+    // Type-to-confirm delete: holds the employee being deleted + the typed text.
+    const [confirmingEmployee, setConfirmingEmployee] = useState(null);
+    const [confirmText, setConfirmText] = useState('');
+    const [deleting, setDeleting] = useState(false);
+
+    const closeDeleteModal = () => {
+        setConfirmingEmployee(null);
+        setConfirmText('');
+        setDeleting(false);
+    };
+
+    // If deleting this person would remove the last Admin / HR, show a blocker instead.
+    const deletingRole = confirmingEmployee?.user?.role;
+    const protectedInfo =
+        (deletingRole === 'admin' && (roleCounts?.admin ?? 0) <= 1) ||
+        (deletingRole === 'hr' && (roleCounts?.hr ?? 0) <= 1)
+            ? PROTECTED[deletingRole]
+            : null;
+
+    const confirmDelete = () => {
+        if (confirmText !== CONFIRM_WORD || !confirmingEmployee) {
+            return;
+        }
+        router.delete(route('employees.destroy', confirmingEmployee.id), {
+            preserveScroll: true,
+            onStart: () => setDeleting(true),
+            onFinish: () => setDeleting(false),
+            onSuccess: closeDeleteModal,
+        });
+    };
 
     // Reload the page with the filters in the query string (?search=...&rank=...)
     const applyFilters = (newSort = sort) => {
@@ -18,12 +72,6 @@ export default function Index({ employees, departments, filters }) {
             { search, department, rank, sort: newSort },
             { preserveState: true, replace: true },
         );
-    };
-
-    const destroy = (employee) => {
-        if (confirm('Delete this employee?')) {
-            router.delete(route('employees.destroy', employee.id), { preserveScroll: true });
-        }
     };
 
     return (
@@ -82,7 +130,7 @@ export default function Index({ employees, departments, filters }) {
 
                             <button
                                 type="submit"
-                                className="rounded-md bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700"
+                                className="rounded-md bg-primary px-3 py-2 text-sm text-white hover:bg-primary-hover"
                             >
                                 Apply
                             </button>
@@ -94,7 +142,7 @@ export default function Index({ employees, departments, filters }) {
                             <h3 className="text-lg font-medium text-gray-700">Employee List</h3>
                             <Link
                                 href={route('employees.create')}
-                                className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                                className="rounded bg-primary px-4 py-2 text-white hover:bg-primary-hover"
                             >
                                 + Add Employee
                             </Link>
@@ -128,14 +176,14 @@ export default function Index({ employees, departments, filters }) {
                                             <td className="space-x-3 px-4 py-3 text-right">
                                                 <Link
                                                     href={route('employees.edit', employee.id)}
-                                                    className="text-indigo-600 hover:underline"
+                                                    className="text-primary hover:underline"
                                                 >
                                                     Edit
                                                 </Link>
                                                 <button
                                                     type="button"
-                                                    onClick={() => destroy(employee)}
-                                                    className="text-red-600 hover:underline"
+                                                    onClick={() => setConfirmingEmployee(employee)}
+                                                    className="text-danger hover:underline"
                                                 >
                                                     Delete
                                                 </button>
@@ -158,6 +206,73 @@ export default function Index({ employees, departments, filters }) {
                     </div>
                 </div>
             </div>
+
+            <Modal show={!!confirmingEmployee} onClose={closeDeleteModal} maxWidth="md">
+                {protectedInfo ? (
+                    <div className="p-6">
+                        <h2 className="text-lg font-medium text-content">
+                            {protectedInfo.icon} {protectedInfo.title}
+                        </h2>
+
+                        <p className="mt-3 text-sm text-muted">{protectedInfo.body}</p>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <SecondaryButton onClick={closeDeleteModal}>
+                                Lower my sword
+                            </SecondaryButton>
+                            <Link
+                                href={route('employees.create')}
+                                className="inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-primary-hover"
+                            >
+                                {protectedInfo.heir}
+                            </Link>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-6">
+                        <h2 className="text-lg font-medium text-content">
+                            Delete {confirmingEmployee?.user?.name}?
+                        </h2>
+
+                        <p className="mt-2 text-sm text-muted">
+                            This permanently removes{' '}
+                            <span className="font-medium text-content">
+                                {confirmingEmployee?.user?.email}
+                            </span>{' '}
+                            and all of their records, including leave requests. This cannot be undone.
+                        </p>
+
+                        <div className="mt-5">
+                            <InputLabel
+                                htmlFor="confirm_delete"
+                                value={`Type ${CONFIRM_WORD} to confirm`}
+                            />
+                            <TextInput
+                                id="confirm_delete"
+                                className="mt-1 block w-full"
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') confirmDelete();
+                                }}
+                                placeholder={CONFIRM_WORD}
+                                autoComplete="off"
+                                isFocused
+                            />
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <SecondaryButton onClick={closeDeleteModal}>Cancel</SecondaryButton>
+                            <DangerButton
+                                onClick={confirmDelete}
+                                disabled={confirmText !== CONFIRM_WORD || deleting}
+                            >
+                                Delete Employee
+                            </DangerButton>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </AuthenticatedLayout>
     );
 }

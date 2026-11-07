@@ -1,24 +1,37 @@
 const styles = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
+    pending_head: 'bg-warning-bg text-warning',
+    pending_hr: 'bg-info-bg text-info',
+    approved: 'bg-success-bg text-success',
+    rejected: 'bg-danger-bg text-danger',
 };
 
-// Coloured badge for a leave request's status, plus the rejection reason.
+const labels = {
+    pending_head: 'Awaiting Head',
+    pending_hr: 'Awaiting HR',
+    approved: 'Approved',
+    rejected: 'Rejected',
+};
+
+// Coloured badge for a leave request's status in the two-step (Head → HR) flow,
+// plus the rejection reason when it was turned down.
 export default function LeaveStatus({ leave }) {
     return (
         <>
             <span
                 className={
-                    'rounded px-2 py-1 text-xs capitalize ' +
-                    (styles[leave.status] ?? 'bg-gray-100 text-gray-700')
+                    'rounded px-2 py-1 text-xs ' +
+                    (styles[leave.status] ?? 'bg-bg text-muted')
                 }
             >
-                {leave.status}
+                {labels[leave.status] ?? leave.status}
             </span>
 
+            {leave.status === 'pending_hr' && (
+                <div className="mt-1 text-xs text-muted">Head approved ✓</div>
+            )}
+
             {leave.status === 'rejected' && leave.rejection_reason && (
-                <div className="mt-1 text-xs text-gray-500">
+                <div className="mt-1 text-xs text-muted">
                     Reason: {leave.rejection_reason}
                 </div>
             )}

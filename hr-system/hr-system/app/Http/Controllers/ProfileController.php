@@ -25,6 +25,14 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the dedicated change-password page.
+     */
+    public function editPassword(Request $request): Response
+    {
+        return Inertia::render('Profile/Password');
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse

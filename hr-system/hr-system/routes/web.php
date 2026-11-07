@@ -17,7 +17,8 @@ use App\Http\Controllers\{
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return redirect()->route('login');
+    // Send signed-in users straight to their dashboard; guests to login.
+    return redirect()->route(auth()->check() ? 'dashboard' : 'login');
 });
 
 /*
@@ -48,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -81,19 +83,29 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | HR (READ ONLY)
+    | HR (final leave sign-off, after the Department Head)
     |--------------------------------------------------------------------------
     */
     Route::get('/hr/leave-requests', [HRLeaveController::class, 'index'])
         ->name('hr.leave.index');
+
+    Route::post('/hr/leave-requests/{leave}/approve', [HRLeaveController::class, 'approve'])
+        ->name('hr.leave.approve');
+
+    Route::post('/hr/leave-requests/{leave}/reject', [HRLeaveController::class, 'reject'])
+        ->name('hr.leave.reject');
 
     /*
     |--------------------------------------------------------------------------
     | Admin (Manage System)
     |--------------------------------------------------------------------------
     */
-    Route::resource('departments', DepartmentController::class);
-    Route::resource('employees', EmployeeController::class);
+    // Only Admin and HR may manage employees and departments.
+    // No detail ('show') pages exist, so those routes are excluded.
+    Route::middleware(\App\Http\Middleware\EnsureAdminOrHr::class)->group(function () {
+        Route::resource('departments', DepartmentController::class)->except('show');
+        Route::resource('employees', EmployeeController::class)->except('show');
+    });
 });
 
 Route::get('/head/leave-history', [LeaveApprovalController::class, 'history'])

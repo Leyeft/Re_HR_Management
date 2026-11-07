@@ -29,9 +29,9 @@ function ApprovalRow({ leave }) {
                     <button
                         type="button"
                         onClick={approve}
-                        className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
+                        className="rounded bg-success px-3 py-1 text-sm text-white hover:opacity-90"
                     >
-                        Approve
+                        Approve → HR
                     </button>
 
                     <form onSubmit={reject} className="flex flex-col items-end">
@@ -46,7 +46,7 @@ function ApprovalRow({ leave }) {
                             />
                             <button
                                 disabled={processing}
-                                className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                                className="rounded bg-danger px-3 py-1 text-sm text-white hover:opacity-90"
                             >
                                 Reject
                             </button>
@@ -65,6 +65,10 @@ export default function Index({ requests }) {
             <Head title="Leave Approvals" />
 
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <p className="mb-4 rounded-lg bg-info-bg p-3 text-sm text-info">
+                    Approving forwards the request to HR for final sign-off. Rejecting ends it here.
+                </p>
+
                 <div className="overflow-x-auto rounded bg-white shadow">
                     <table className="w-full">
                         <thead className="bg-gray-100 text-left text-sm">

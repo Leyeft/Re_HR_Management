@@ -58,13 +58,16 @@ export default function Create({ departments }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="role" value="System Role" />
+                        <InputLabel htmlFor="role" value="System Role — app access level" />
                         <SelectInput id="role" className="mt-1 block w-full" value={data.role}
                             onChange={(e) => setData('role', e.target.value)} required>
-                            <option value="employee">Employee</option>
-                            <option value="hr">HR</option>
-                            <option value="admin">Admin</option>
+                            <option value="employee">Employee — standard access</option>
+                            <option value="hr">HR — can view all leave</option>
+                            <option value="admin">Admin — full access</option>
                         </SelectInput>
+                        <p className="mt-1 text-xs text-muted">
+                            Controls what this person can do across the whole app.
+                        </p>
                         <InputError message={errors.role} className="mt-1" />
                     </div>
 
@@ -81,12 +84,15 @@ export default function Create({ departments }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="rank" value="Department Rank" />
+                        <InputLabel htmlFor="rank" value="Department Rank — position in the department" />
                         <SelectInput id="rank" className="mt-1 block w-full" value={data.rank}
                             onChange={(e) => setData('rank', e.target.value)} required>
-                            <option value="employee">Employee</option>
-                            <option value="head">Head of Department</option>
+                            <option value="employee">Member — submits leave requests</option>
+                            <option value="head">Head of Department — approves team leave</option>
                         </SelectInput>
+                        <p className="mt-1 text-xs text-muted">
+                            A Head can approve leave for people in their own department.
+                        </p>
                         <InputError message={errors.rank} className="mt-1" />
                     </div>
 

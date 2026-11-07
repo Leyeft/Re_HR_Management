@@ -11,29 +11,40 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Basic stats
-        $totalStaff = Employee::count();
-        $totalDepartments = Department::count();
+        $user = auth()->user();
 
-        // Pie chart: staff per department
-        $departments = Department::withCount('employees')->get();
+        // Only Admin and HR see company-wide figures.
+        if (in_array($user->role, ['admin', 'hr'], true)) {
+            return Inertia::render('Dashboard', [
+                'canSeeOrg' => true,
+                'totalStaff' => Employee::count(),
+                'totalDepartments' => Department::count(),
+                'labels' => Department::orderBy('name')->pluck('name'),
+                'data' => Department::orderBy('name')->withCount('employees')->pluck('employees_count'),
+                'leaveStats' => [
+                    'pending_head' => LeaveRequest::where('status', 'pending_head')->count(),
+                    'pending_hr'   => LeaveRequest::where('status', 'pending_hr')->count(),
+                    'approved'     => LeaveRequest::where('status', 'approved')->count(),
+                    'rejected'     => LeaveRequest::where('status', 'rejected')->count(),
+                ],
+            ]);
+        }
 
-        $labels = $departments->pluck('name');
-        $data   = $departments->pluck('employees_count');
+        // Everyone else sees only their own leave summary.
+        $employee = $user->employee;
+        $base = $employee
+            ? LeaveRequest::where('employee_id', $employee->id)
+            : null;
 
-        // Bar chart: leave status
-        $leaveStats = [
-            'pending'  => LeaveRequest::where('status', 'pending')->count(),
-            'approved' => LeaveRequest::where('status', 'approved')->count(),
-            'rejected' => LeaveRequest::where('status', 'rejected')->count(),
-        ];
-
-        return Inertia::render('Dashboard', compact(
-            'totalStaff',
-            'totalDepartments',
-            'labels',
-            'data',
-            'leaveStats'
-        ));
+        return Inertia::render('Dashboard', [
+            'canSeeOrg' => false,
+            'isHead' => optional($employee)->rank === 'head',
+            'myLeave' => $employee ? [
+                'pending'  => (clone $base)->whereIn('status', ['pending_head', 'pending_hr'])->count(),
+                'approved' => (clone $base)->where('status', 'approved')->count(),
+                'rejected' => (clone $base)->where('status', 'rejected')->count(),
+                'total'    => (clone $base)->count(),
+            ] : null,
+        ]);
     }
 }

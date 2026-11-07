@@ -1,7 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
 export default function Edit({ mustVerifyEmail, status }) {
@@ -26,7 +25,22 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
 
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <UpdatePasswordForm className="max-w-xl" />
+                        <header>
+                            <h2 className="text-lg font-medium text-gray-900">
+                                Password
+                            </h2>
+
+                            <p className="mt-1 text-sm text-gray-600">
+                                Change your password on a separate, secure page.
+                            </p>
+                        </header>
+
+                        <Link
+                            href={route('profile.password')}
+                            className="mt-4 inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900"
+                        >
+                            Reset Password
+                        </Link>
                     </div>
 
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">

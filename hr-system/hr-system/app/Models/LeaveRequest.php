@@ -13,7 +13,16 @@ class LeaveRequest extends Model
         'end_date',
         'reason',
         'status',
-        'reject_reason',
+        'rejection_reason',
+        'head_approved_by',
+        'head_approved_at',
+        'hr_approved_by',
+        'hr_approved_at',
+    ];
+
+    protected $casts = [
+        'head_approved_at' => 'datetime',
+        'hr_approved_at' => 'datetime',
     ];
 
     public function employee()
@@ -24,5 +33,15 @@ class LeaveRequest extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function headApprover()
+    {
+        return $this->belongsTo(User::class, 'head_approved_by');
+    }
+
+    public function hrApprover()
+    {
+        return $this->belongsTo(User::class, 'hr_approved_by');
     }
 }
