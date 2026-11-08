@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.jsx',
+            // app.jsx = old Inertia pages (being retired); spa/main.jsx = the new React SPA.
+            input: ['resources/js/app.jsx', 'resources/js/spa/main.jsx'],
             refresh: true,
         }),
         react(),

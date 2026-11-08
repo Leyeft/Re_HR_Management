@@ -25,6 +25,14 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
+| React SPA (new frontend) — served at /app while pages move over from Inertia.
+| React Router handles everything after /app; data comes from /api.
+|--------------------------------------------------------------------------
+*/
+Route::view('/app/{any?}', 'spa')->where('any', '.*')->name('spa');
+
+/*
+|--------------------------------------------------------------------------
 | Auth Routes
 |--------------------------------------------------------------------------
 */
