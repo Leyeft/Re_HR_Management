@@ -4,6 +4,8 @@ import authReducer, { sessionEnded } from './authSlice';
 import dashboardReducer from './dashboardSlice';
 import departmentsReducer from './departmentsSlice';
 import employeesReducer from './employeesSlice';
+import holidaysReducer from './holidaysSlice';
+import leaveReducer from './leaveSlice';
 import toastReducer from './toastSlice';
 
 /**
@@ -13,6 +15,8 @@ import toastReducer from './toastSlice';
  *   dashboard   – dashboard figures
  *   departments – all departments (searched in the browser)
  *   employees   – the employee list page, the open profile and its leave history
+ *   leave       – my leave + balance, Head approvals/history, HR's all-leave list
+ *   holidays    – public holidays (used to count working days)
  */
 export const store = configureStore({
     reducer: {
@@ -21,6 +25,8 @@ export const store = configureStore({
         dashboard: dashboardReducer,
         departments: departmentsReducer,
         employees: employeesReducer,
+        leave: leaveReducer,
+        holidays: holidaysReducer,
     },
 });
 

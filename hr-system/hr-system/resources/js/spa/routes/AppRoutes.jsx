@@ -7,6 +7,11 @@ import Departments from '../pages/departments/Departments';
 import EmployeeForm from '../pages/employees/EmployeeForm';
 import EmployeeProfile from '../pages/employees/EmployeeProfile';
 import Employees from '../pages/employees/Employees';
+import AllLeave from '../pages/leave/AllLeave';
+import Approvals from '../pages/leave/Approvals';
+import DeptHistory from '../pages/leave/DeptHistory';
+import MyLeave from '../pages/leave/MyLeave';
+import RequestLeave from '../pages/leave/RequestLeave';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import ResetPassword from '../pages/auth/ResetPassword';
 import NotFound from '../pages/NotFound';
@@ -34,16 +39,17 @@ export default function AppRoutes() {
                     <Route path="/profile" element={<Profile />} />
 
                     <Route element={<RequireCan permission="request_leave" />}>
-                        <Route path="/leave" element={<ComingSoon title="My Leave" />} />
+                        <Route path="/leave" element={<MyLeave />} />
+                        <Route path="/leave/new" element={<RequestLeave />} />
                     </Route>
 
                     <Route element={<RequireCan permission="approve_department_leave" />}>
-                        <Route path="/approvals" element={<ComingSoon title="Approvals" />} />
-                        <Route path="/approvals/history" element={<ComingSoon title="Department leave history" />} />
+                        <Route path="/approvals" element={<Approvals />} />
+                        <Route path="/approvals/history" element={<DeptHistory />} />
                     </Route>
 
                     <Route element={<RequireCan permission="sign_off_leave" />}>
-                        <Route path="/hr/leave" element={<ComingSoon title="All Leave" />} />
+                        <Route path="/hr/leave" element={<AllLeave />} />
                     </Route>
 
                     <Route element={<RequireCan permission="manage_staff" />}>
