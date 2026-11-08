@@ -22,10 +22,11 @@ class EmployeeController extends Controller
     {
     }
 
-    // GET /api/employees?search=&department=&rank=&sort=asc|desc&per_page=
+    // GET /api/employees?search=&department=&rank=&skill=&sort=asc|desc&trashed=only&per_page=
     public function index(Request $request): AnonymousResourceCollection
     {
-        $employees = Employee::listQuery($request->only('search', 'department', 'rank', 'sort'))
+        $employees = Employee::listQuery($request->only('search', 'department', 'rank', 'skill', 'sort', 'trashed'))
+            ->with('skills')
             ->paginate($request->integer('per_page', 10))
             ->withQueryString()
             ->through(function (Employee $employee) {
@@ -44,7 +45,7 @@ class EmployeeController extends Controller
     {
         $employee = $this->employees->create($request->validated());
 
-        return (new EmployeeResource($employee->load(['user', 'department'])))
+        return (new EmployeeResource($employee->load(['user', 'department', 'skills'])))
             ->additional(['message' => 'Employee created.'])
             ->response()
             ->setStatusCode(201);
@@ -53,7 +54,7 @@ class EmployeeController extends Controller
     // GET /api/employees/{employee} — profile with this year's leave balance.
     public function show(Employee $employee): EmployeeResource
     {
-        $employee->load(['user', 'department']);
+        $employee->load(['user', 'department', 'skills']);
         $employee->setAttribute('leave_summary', $employee->leaveSummary());
         $employee->setAttribute('is_last_head', $employee->isLastHeadWithStaff());
 
@@ -65,16 +66,25 @@ class EmployeeController extends Controller
     {
         $employee = $this->employees->update($employee, $request->validated());
 
-        return (new EmployeeResource($employee->load(['user', 'department'])))
+        return (new EmployeeResource($employee->load(['user', 'department', 'skills'])))
             ->additional(['message' => 'Employee updated.']);
     }
 
-    // DELETE /api/employees/{employee}
+    // DELETE /api/employees/{employee} — soft delete (can be restored).
     public function destroy(Employee $employee): JsonResponse
     {
         $this->employees->delete($employee);
 
-        return response()->json(['message' => 'Employee deleted.']);
+        return response()->json(['message' => 'Employee deleted. You can restore them from the Deleted list.']);
+    }
+
+    // POST /api/employees/{employee}/restore
+    public function restore(Employee $employee): EmployeeResource
+    {
+        $employee = $this->employees->restore($employee);
+
+        return (new EmployeeResource($employee->load(['user', 'department', 'skills'])))
+            ->additional(['message' => 'Employee restored.']);
     }
 
     // GET /api/employees/{employee}/leave-requests — full history, newest first.

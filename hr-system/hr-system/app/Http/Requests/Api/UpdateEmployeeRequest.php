@@ -25,7 +25,12 @@ class UpdateEmployeeRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'role' => ['required', 'in:employee,hr,admin'],
             'rank' => ['required', 'in:employee,head'],
-            'department_id' => ['required', 'exists:departments,id'],
+            // Must be an existing department that hasn't been deleted.
+            'department_id' => ['required', Rule::exists('departments', 'id')->whereNull('deleted_at')],
+            // Optional: [{ id, level }, …] — saved in the employee_skill pivot table.
+            'skills' => ['sometimes', 'array'],
+            'skills.*.id' => ['required', 'distinct', 'exists:skills,id'],
+            'skills.*.level' => ['required', 'in:beginner,intermediate,expert'],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'date_hired' => ['required', 'date', 'before_or_equal:today'],
         ];
@@ -39,6 +44,9 @@ class UpdateEmployeeRequest extends FormRequest
             'rank.in' => 'Rank must be Employee or Head of Department.',
             'department_id.exists' => 'Please choose a department from the list.',
             'date_of_birth.before' => 'Date of birth must be in the past.',
+            'skills.*.id.exists' => 'One of the chosen skills no longer exists.',
+            'skills.*.id.distinct' => 'Each skill can only be added once.',
+            'skills.*.level.in' => 'Skill level must be beginner, intermediate or expert.',
             'date_hired.before_or_equal' => 'Date hired can\'t be in the future.',
         ];
     }

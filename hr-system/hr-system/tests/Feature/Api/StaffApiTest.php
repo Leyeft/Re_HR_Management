@@ -73,7 +73,7 @@ class StaffApiTest extends TestCase
         $it = Department::create(['name' => 'IT']);
 
         $this->putJson("/api/departments/{$it->id}", ['name' => 'Finance'])
-            ->assertStatus(422)->assertJsonPath('errors.name.0', 'Another department already has this name.');
+            ->assertStatus(422)->assertJsonPath('errors.name.0', 'Another department already has this name (it may be a deleted one — restore it instead).');
     }
 
     public function test_department_with_staff_cannot_be_deleted(): void
@@ -118,7 +118,7 @@ class StaffApiTest extends TestCase
             ->assertJsonPath('data.user.name', 'Renamed')->assertJsonPath('data.user.role', 'admin');
 
         $this->deleteJson("/api/employees/{$id}")->assertOk();
-        $this->assertDatabaseMissing('users', ['email' => 'new@test.com']);
+        $this->assertSoftDeleted('users', ['email' => 'new@test.com']); // kept, can be restored
     }
 
     public function test_employee_list_filters_and_paginates(): void

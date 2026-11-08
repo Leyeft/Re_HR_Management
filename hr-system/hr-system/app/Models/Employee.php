@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Carbon;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -21,11 +22,21 @@ class Employee extends Model
         'date_hired',
     ];
 
+    // Every new employee gets their ID at the moment they're saved (one at a time,
+    // so two people created together never get the same number).
+    protected static function booted(): void
+    {
+        static::creating(function (Employee $employee) {
+            $employee->employee_code ??= static::generateCode((int) $employee->department_id);
+        });
+    }
+
     // Next employee code for a department: deptId * 100000 + next sequence.
     public static function generateCode(int $departmentId): int
     {
         $base = $departmentId * 100000;
-        $maxInDept = (int) static::where('department_id', $departmentId)->max('employee_code');
+        // Include deleted employees: their codes stay reserved (and the column is unique).
+        $maxInDept = (int) static::withTrashed()->where('department_id', $departmentId)->max('employee_code');
         $lastSeq = $maxInDept > $base ? ($maxInDept - $base) : 0;
 
         return $base + $lastSeq + 1;
@@ -45,6 +56,9 @@ class Employee extends Model
                 ->orWhere('users.email', 'like', '%' . $filters['search'] . '%')))
             ->when($filled('department'), fn ($q) => $q->where('employees.department_id', $filters['department']))
             ->when($filled('rank'), fn ($q) => $q->where('employees.rank', $filters['rank']))
+            ->when($filled('skill'), fn ($q) => $q->whereHas('skills', fn ($s) => $s->where('skills.id', $filters['skill'])))
+            // ?trashed=only lists deleted employees (to restore them).
+            ->when(($filters['trashed'] ?? null) === 'only', fn ($q) => $q->onlyTrashed())
             ->orderBy('users.name', $sort)
             ->select('employees.*');
     }
@@ -54,9 +68,20 @@ class Employee extends Model
         'date_hired' => 'date:Y-m-d',
     ];
 
+    // withTrashed: a deleted employee's account is soft-deleted too, but their
+    // name must still show on old leave records and reports.
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    // Many-to-many through the employee_skill pivot, which also stores the level.
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class)
+            ->withPivot('level')
+            ->withTimestamps()
+            ->orderBy('name');
     }
 
     public function department()

@@ -30,7 +30,7 @@ class EmployeeService
                 'role' => $data['role'],
             ]);
 
-            return Employee::create([
+            $employee = Employee::create([
                 'user_id' => $user->id,
                 'department_id' => $data['department_id'],
                 'employee_code' => Employee::generateCode((int) $data['department_id']),
@@ -38,6 +38,12 @@ class EmployeeService
                 'date_of_birth' => $data['date_of_birth'],
                 'date_hired' => $data['date_hired'],
             ]);
+
+            if (array_key_exists('skills', $data)) {
+                $this->syncSkills($employee, $data['skills'] ?? []);
+            }
+
+            return $employee;
         });
     }
 
@@ -82,6 +88,11 @@ class EmployeeService
                 'date_of_birth' => $data['date_of_birth'],
                 'date_hired' => $data['date_hired'],
             ]);
+
+            // Only touch skills when the form sent them (older clients may not).
+            if (array_key_exists('skills', $data)) {
+                $this->syncSkills($employee, $data['skills'] ?? []);
+            }
         });
 
         return $employee->refresh();
@@ -107,8 +118,46 @@ class EmployeeService
             );
         }
 
-        // Deleting the user also removes the employee record (cascade).
-        $user->delete();
+        // Soft delete: the person and their account are hidden and can't sign in, but can be
+        // restored. Requests still waiting for a decision are cancelled; past leave stays on record.
+        DB::transaction(function () use ($employee, $user) {
+            $employee->leaveRequests()
+                ->whereIn('status', ['pending_head', 'pending_hr'])
+                ->update(['status' => 'cancelled', 'cancellation_reason' => 'Employee removed from the system']);
+
+            $employee->delete();
+            $user->delete();
+        });
+    }
+
+    // Bring back a deleted employee and their account.
+    public function restore(Employee $employee): Employee
+    {
+        if (! $employee->trashed()) {
+            throw new BusinessRuleException('This employee is not deleted.', 'not_deleted');
+        }
+
+        if (! $employee->department()->exists()) {
+            throw new BusinessRuleException(
+                'Their department has been deleted. Restore the department first.',
+                'department_deleted',
+            );
+        }
+
+        DB::transaction(function () use ($employee) {
+            $employee->user()->withTrashed()->first()?->restore();
+            $employee->restore();
+        });
+
+        return $employee->refresh();
+    }
+
+    // Replace the employee's skills: $skills = [['id' => 3, 'level' => 'expert'], …]
+    public function syncSkills(Employee $employee, array $skills): void
+    {
+        $employee->skills()->sync(
+            collect($skills)->mapWithKeys(fn ($s) => [(int) $s['id'] => ['level' => $s['level'] ?? 'intermediate']])->all()
+        );
     }
 
     private function ensureHeadIsEmployeeRole(string $role, string $rank): void

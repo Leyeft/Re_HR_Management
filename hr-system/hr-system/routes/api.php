@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\HrLeaveController;
 use App\Http\Controllers\Api\LeaveRequestController;
 use App\Http\Controllers\Api\LeaveSettingsController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\SkillController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -70,8 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('hr/leave-requests/{leave}/reject', [HrLeaveController::class, 'reject']);
 
         Route::apiResource('departments', DepartmentController::class);
+        Route::post('departments/{department}/restore', [DepartmentController::class, 'restore'])->withTrashed();
         Route::apiResource('employees', EmployeeController::class);
+        Route::post('employees/{employee}/restore', [EmployeeController::class, 'restore'])->withTrashed();
         Route::get('employees/{employee}/leave-requests', [EmployeeController::class, 'leaveRequests']);
+        Route::apiResource('skills', SkillController::class)->except('show');
 
         Route::get('settings/leave', [LeaveSettingsController::class, 'show']);
         Route::put('settings/leave', [LeaveSettingsController::class, 'update']);

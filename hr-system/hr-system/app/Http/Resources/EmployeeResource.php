@@ -26,6 +26,13 @@ class EmployeeResource extends JsonResource
             'department_id' => $this->department_id,
             'user' => new UserResource($this->whenLoaded('user')),
             'department' => new DepartmentResource($this->whenLoaded('department')),
+            // From the employee_skill pivot: each skill with this person's level.
+            'skills' => $this->whenLoaded('skills', fn () => $this->skills->map(fn ($skill) => [
+                'id' => $skill->id,
+                'name' => $skill->name,
+                'level' => $skill->pivot->level,
+            ])->values()),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
             'leave_summary' => $this->when($this->resource->getAttribute('leave_summary') !== null,
                 fn () => $this->resource->getAttribute('leave_summary')),
             'is_last_head' => $this->when($this->resource->getAttribute('is_last_head') !== null,

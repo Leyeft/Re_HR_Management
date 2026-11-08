@@ -157,7 +157,7 @@ class EmployeeManagementTest extends TestCase
 
         $this->actingAs($this->admin())->delete(route('employees.destroy', $head));
 
-        $this->assertDatabaseMissing('employees', ['id' => $head->id]);
+        $this->assertSoftDeleted('employees', ['id' => $head->id]);
     }
 
     public function test_last_admin_cannot_be_deleted(): void
@@ -176,8 +176,10 @@ class EmployeeManagementTest extends TestCase
         $this->seed();
 
         $this->assertSame(1, User::where('role', 'admin')->count());
-        $this->assertSame(5, Department::count());
-        $this->assertGreaterThan(5, Employee::count());
+        $this->assertSame(6, Department::count()); // incl. Operations (parent of Housekeeping & Maintenance)
+        $this->assertSame('Operations', Department::where('name', 'Housekeeping')->first()->parent->name);
+        $this->assertGreaterThan(0, \App\Models\Skill::has('employees')->count()); // pivot rows exist
+        $this->assertSame(20, Employee::count()); // 12 named + 8 from the EmployeeFactory
 
         // Re-running doesn't duplicate anything.
         $count = Employee::count();

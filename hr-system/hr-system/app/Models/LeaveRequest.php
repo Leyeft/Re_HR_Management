@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class LeaveRequest extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'employee_id',
         'department_id',
@@ -74,9 +77,10 @@ class LeaveRequest extends Model
             ->when($filled('to'), fn ($q) => $q->where('start_date', '<=', $filters['to']));
     }
 
+    // withTrashed: leave taken by someone who has since been removed stays in the records.
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class)->withTrashed();
     }
 
     public function department()

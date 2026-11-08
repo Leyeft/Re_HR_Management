@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -25,6 +26,9 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // Factory-made extra staff are only added on a fresh install, so re-running is safe.
+        $freshInstall = ! User::withTrashed()->where('email', 'admin@test.com')->exists();
+
         $departments = collect([
             'Human Resources' => 'Hiring, records and leave sign-off.',
             'Finance' => 'Payroll, budgets and accounts.',
@@ -35,6 +39,18 @@ class DemoSeeder extends Seeder
             ['name' => $name],
             ['description' => $description],
         ));
+
+        // Hierarchy (self-referencing parent_id): Housekeeping and Maintenance sit under Operations.
+        $operations = Department::firstOrCreate(['name' => 'Operations'], ['description' => 'Keeps the building running.']);
+        foreach (['Housekeeping', 'Maintenance'] as $child) {
+            $departments[$child]->parent_id ??= $operations->id;
+            $departments[$child]->save();
+        }
+
+        // Skills (many-to-many through employee_skill).
+        $skills = collect(['Excel', 'First aid', 'Customer service', 'Networking', 'Plumbing',
+            'Electrical', 'Accounting', 'Payroll', 'Leadership', 'English'])
+            ->mapWithKeys(fn ($name) => [$name => Skill::firstOrCreate(['name' => $name])]);
 
         // Common yearly holidays — HR adds the rest on the Leave Settings page.
         foreach (['01-01' => "New Year's Day", '12-25' => 'Christmas Day'] as $md => $name) {
@@ -85,6 +101,38 @@ class DemoSeeder extends Seeder
                 'date_of_birth' => now()->subYears(25 + $yearsAgo)->subDays(40)->toDateString(),
                 'date_hired' => now()->subYears($yearsAgo)->subMonths(2)->toDateString(),
             ]);
+        }
+
+        // Skills with a level for the demo staff: [email => [skill => level]]
+        $skillMap = [
+            'admin@test.com' => ['Leadership' => 'expert', 'Excel' => 'intermediate'],
+            'hr@test.com' => ['Payroll' => 'expert', 'English' => 'expert', 'Excel' => 'intermediate'],
+            'james@test.com' => ['Accounting' => 'expert', 'Excel' => 'expert', 'Leadership' => 'intermediate'],
+            'itsupport@test.com' => ['Networking' => 'expert', 'Leadership' => 'beginner'],
+            'housekeep@test.com' => ['Customer service' => 'expert', 'First aid' => 'intermediate'],
+            'maintain@test.com' => ['Electrical' => 'expert', 'Plumbing' => 'intermediate'],
+            'bobby@test.com' => ['Accounting' => 'intermediate', 'Excel' => 'intermediate'],
+            'jackie@test.com' => ['Networking' => 'intermediate'],
+            'noel@test.com' => ['Plumbing' => 'expert', 'First aid' => 'beginner'],
+        ];
+        foreach ($skillMap as $email => $list) {
+            $employee = $created[$email] ?? null;
+            $employee?->skills()->syncWithoutDetaching(
+                collect($list)->mapWithKeys(fn ($level, $skill) => [$skills[$skill]->id => ['level' => $level]])->all()
+            );
+        }
+
+        // A few more people per department, made by the EmployeeFactory (fresh install only).
+        if ($freshInstall) {
+            foreach (['Finance', 'IT Support', 'Housekeeping', 'Maintenance'] as $deptName) {
+                Employee::factory()
+                    ->count(2)
+                    ->for($departments[$deptName])
+                    ->create()
+                    ->each(fn (Employee $e) => $e->skills()->attach(
+                        $skills->random(2)->pluck('id')->mapWithKeys(fn ($id) => [$id => ['level' => fake()->randomElement(Skill::LEVELS)]])->all()
+                    ));
+            }
         }
 
         $this->seedLeave($created);
