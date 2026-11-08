@@ -1,6 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
-import ComingSoon from '../pages/ComingSoon';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import Departments from '../pages/departments/Departments';
@@ -12,6 +11,7 @@ import Approvals from '../pages/leave/Approvals';
 import DeptHistory from '../pages/leave/DeptHistory';
 import MyLeave from '../pages/leave/MyLeave';
 import RequestLeave from '../pages/leave/RequestLeave';
+import LeaveSettings from '../pages/settings/LeaveSettings';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import ResetPassword from '../pages/auth/ResetPassword';
 import NotFound from '../pages/NotFound';
@@ -58,7 +58,7 @@ export default function AppRoutes() {
                         <Route path="/employees/new" element={<EmployeeForm />} />
                         <Route path="/employees/:id" element={<EmployeeProfile />} />
                         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
-                        <Route path="/settings/leave" element={<ComingSoon title="Leave Settings" />} />
+                        <Route path="/settings/leave" element={<LeaveSettings />} />
                     </Route>
 
                     <Route path="*" element={<NotFound />} />
