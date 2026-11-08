@@ -235,8 +235,8 @@ Most fixes are code-only. Planned database change (as a **new migration**, not b
 | 3 | All pages moved to the SPA: dashboard (charts), profile, passwords, departments (modal CRUD, client-side search), employees (server-side filters, profile, form), my leave, request leave, approvals, dept history, all leave, leave settings | **Done** (`85facc2`…) |
 | 4 | Department hierarchy (self-referencing `parent_id`, loop-proof), skills + `employee_skill` pivot with level, soft deletes + restore (users, employees, departments), factories (Department, Employee, Skill, LeaveRequest) | **Done** (`798b7f7` + SPA) |
 | 5 | In-app notifications (bell, 30 s polling; email deferred until deployed), activity/audit log (LogsActivity trait, old/new values, sign-ins), last login, avatar upload (JPG/PNG/WebP ≤ 2 MB) | **Done** (`d18d6d6` + SPA) |
-| 6 | Remove Inertia + web controllers; convert old feature tests to API tests | Next |
-| 7 | Docs: Postman collection, README (setup, endpoints, roles table, ERD, deployed URL); deploy online | |
+| 6 | SPA at the site root (old /app and /dashboard redirect); Inertia, Breeze, Ziggy and all web controllers removed; email verification on the API; web tests moved to the API (146 tests) | **Done** (`46159df`, `f63e3d5`) |
+| 7 | Docs: Postman collection, README (setup, endpoints, roles table, ERD, deployed URL); deploy online | Next |
 
 **API notes:** routes in `routes/api.php` (names prefixed `api.` so they don't clash with web route names).
 The SPA must call `GET /sanctum/csrf-cookie` before `POST /api/auth/login`. `GET /api/auth/me` returns
