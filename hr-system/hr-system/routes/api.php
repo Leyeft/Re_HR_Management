@@ -1,0 +1,84 @@
+<?php
+
+use App\Http\Controllers\Api\ApprovalController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\HrLeaveController;
+use App\Http\Controllers\Api\LeaveRequestController;
+use App\Http\Controllers\Api\LeaveSettingsController;
+use App\Http\Controllers\Api\ProfileController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Crewly REST API  (all routes are prefixed with /api)
+|--------------------------------------------------------------------------
+| The React SPA signs in with Sanctum's session cookie: it calls
+| GET /sanctum/csrf-cookie first, then POST /api/auth/login.
+|
+| Roles:  employee (default) · hr · admin      (users.role)
+| Rank:   employee · head                       (employees.rank)
+|
+| Errors always look like: { "code": "...", "message": "...", "errors": {...} }
+*/
+
+// Route names get an "api." prefix so they never clash with web page names.
+Route::name('api.')->group(function () {
+
+/* ---------- Guests ---------- */
+Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
+});
+
+/* ---------- Everyone signed in ---------- */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::get('auth/me', [AuthController::class, 'me']);
+
+    Route::put('profile', [ProfileController::class, 'update']);
+    Route::put('profile/password', [ProfileController::class, 'password']);
+
+    Route::get('dashboard', DashboardController::class);
+
+    // My own leave
+    Route::get('leave-requests', [LeaveRequestController::class, 'index']);
+    Route::get('leave-requests/summary', [LeaveRequestController::class, 'summary']);
+    Route::post('leave-requests', [LeaveRequestController::class, 'store']);
+    Route::post('leave-requests/{leave}/cancel', [LeaveRequestController::class, 'cancel']);
+
+    // Needed by the leave form to count working days
+    Route::get('holidays', [HolidayController::class, 'index']);
+
+    /* ---------- Head of Department: step 1 of approval ---------- */
+    Route::middleware('head')->prefix('approvals')->group(function () {
+        Route::get('/', [ApprovalController::class, 'index']);
+        Route::get('history', [ApprovalController::class, 'history']);
+        Route::post('{leave}/approve', [ApprovalController::class, 'approve']);
+        Route::post('{leave}/reject', [ApprovalController::class, 'reject']);
+    });
+
+    /* ---------- Admin & HR ---------- */
+    Route::middleware('role:admin,hr')->group(function () {
+        // Step 2 of approval (final sign-off) and the all-leave list
+        Route::get('hr/leave-requests', [HrLeaveController::class, 'index']);
+        Route::post('hr/leave-requests/{leave}/approve', [HrLeaveController::class, 'approve']);
+        Route::post('hr/leave-requests/{leave}/reject', [HrLeaveController::class, 'reject']);
+
+        Route::apiResource('departments', DepartmentController::class);
+        Route::apiResource('employees', EmployeeController::class);
+        Route::get('employees/{employee}/leave-requests', [EmployeeController::class, 'leaveRequests']);
+
+        Route::get('settings/leave', [LeaveSettingsController::class, 'show']);
+        Route::put('settings/leave', [LeaveSettingsController::class, 'update']);
+
+        Route::post('holidays', [HolidayController::class, 'store']);
+        Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy']);
+    });
+});
+
+}); // end api. name prefix
