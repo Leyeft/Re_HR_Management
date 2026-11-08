@@ -116,13 +116,12 @@ class ReportTest extends TestCase
         $this->leave($employee, ['status' => 'approved']);
         $this->leave($employee, ['status' => 'rejected', 'start_date' => '2026-12-01', 'end_date' => '2026-12-01']);
 
+        // The All Leave page's API uses the same filter as the export.
         $this->actingAs($this->hr())
-            ->get(route('hr.leave.index', ['status' => 'rejected']))
+            ->getJson('/api/hr/leave-requests?status=rejected')
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('HR/Leave/Index')
-                ->where('leaves.total', 1)
-                ->where('filters.status', 'rejected'));
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.status', 'rejected');
     }
 
     public function test_end_date_before_start_date_is_rejected(): void

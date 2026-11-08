@@ -99,7 +99,7 @@ class AuthApiTest extends TestCase
 
         Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
             $url = $notification->toMail($user)->actionUrl;
-            $this->assertStringContainsString('/app/reset-password/' . $notification->token, $url);
+            $this->assertStringContainsString('/reset-password/' . $notification->token, $url);
             $this->assertStringContainsString('email=' . urlencode($user->email), $url);
 
             $this->postJson('/api/auth/reset-password', [

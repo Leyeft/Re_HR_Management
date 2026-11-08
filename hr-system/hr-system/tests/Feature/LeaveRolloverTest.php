@@ -71,11 +71,11 @@ class LeaveRolloverTest extends TestCase
     {
         $hr = User::factory()->create(['role' => 'hr']);
 
-        $this->actingAs($hr)->get(route('settings.leave'))->assertOk();
-        $this->actingAs($hr)->put(route('settings.leave.update'), [
+        $this->actingAs($hr)->getJson('/api/settings/leave')->assertOk();
+        $this->actingAs($hr)->putJson('/api/settings/leave', [
             'rollover_enabled' => true,
             'rollover_max_days' => 7,
-        ])->assertSessionHasNoErrors();
+        ])->assertOk();
 
         $this->assertTrue(Setting::rolloverEnabled());
         $this->assertSame(7, Setting::rolloverMaxDays());
@@ -85,8 +85,8 @@ class LeaveRolloverTest extends TestCase
     {
         $employee = $this->makeEmployee();
 
-        $this->actingAs($employee->user)->get(route('settings.leave'))->assertForbidden();
-        $this->actingAs($employee->user)->put(route('settings.leave.update'), [
+        $this->actingAs($employee->user)->getJson('/api/settings/leave')->assertForbidden();
+        $this->actingAs($employee->user)->putJson('/api/settings/leave', [
             'rollover_enabled' => true,
             'rollover_max_days' => 7,
         ])->assertForbidden();
