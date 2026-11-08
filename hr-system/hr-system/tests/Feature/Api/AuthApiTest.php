@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -85,6 +88,43 @@ class AuthApiTest extends TestCase
         $b = $this->postJson('/api/auth/forgot-password', ['email' => User::factory()->create()->email])->assertOk()->json('message');
 
         $this->assertSame($a, $b);
+    }
+
+    public function test_reset_email_links_to_the_spa_and_the_reset_works(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $this->postJson('/api/auth/forgot-password', ['email' => $user->email])->assertOk();
+
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
+            $url = $notification->toMail($user)->actionUrl;
+            $this->assertStringContainsString('/app/reset-password/' . $notification->token, $url);
+            $this->assertStringContainsString('email=' . urlencode($user->email), $url);
+
+            $this->postJson('/api/auth/reset-password', [
+                'token' => $notification->token,
+                'email' => $user->email,
+                'password' => 'brand-new-pass-1',
+                'password_confirmation' => 'brand-new-pass-1',
+            ])->assertOk();
+
+            return true;
+        });
+
+        $this->assertTrue(Hash::check('brand-new-pass-1', $user->fresh()->password));
+    }
+
+    public function test_reset_with_a_bad_token_is_refused(): void
+    {
+        $user = User::factory()->create();
+
+        $this->postJson('/api/auth/reset-password', [
+            'token' => 'not-a-real-token',
+            'email' => $user->email,
+            'password' => 'brand-new-pass-1',
+            'password_confirmation' => 'brand-new-pass-1',
+        ])->assertStatus(422)->assertJsonPath('code', 'validation_error');
     }
 
     public function test_profile_can_be_updated(): void

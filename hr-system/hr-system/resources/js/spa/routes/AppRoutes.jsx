@@ -1,7 +1,10 @@
 import { Route, Routes } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
 import ComingSoon from '../pages/ComingSoon';
-import Home from '../pages/Home';
+import Dashboard from '../pages/Dashboard';
+import Profile from '../pages/Profile';
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 import NotFound from '../pages/NotFound';
 import Login from '../pages/auth/Login';
 import { GuestOnly, RequireAuth, RequireCan } from './guards';
@@ -17,13 +20,14 @@ export default function AppRoutes() {
         <Routes>
             <Route element={<GuestOnly />}>
                 <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ComingSoon title="Forgot password" />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
             </Route>
 
             <Route element={<RequireAuth />}>
                 <Route element={<AppLayout />}>
-                    <Route index element={<Home />} />
-                    <Route path="/profile" element={<ComingSoon title="Profile" />} />
+                    <Route index element={<Dashboard />} />
+                    <Route path="/profile" element={<Profile />} />
 
                     <Route element={<RequireCan permission="request_leave" />}>
                         <Route path="/leave" element={<ComingSoon title="My Leave" />} />

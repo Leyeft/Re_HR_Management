@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setUnauthenticatedHandler } from '../api/client';
 import authReducer, { sessionEnded } from './authSlice';
+import dashboardReducer from './dashboardSlice';
 import toastReducer from './toastSlice';
 
 /**
@@ -13,6 +14,7 @@ export const store = configureStore({
     reducer: {
         auth: authReducer,
         toasts: toastReducer,
+        dashboard: dashboardReducer,
     },
 });
 
