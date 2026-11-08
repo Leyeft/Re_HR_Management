@@ -1,246 +1,169 @@
-# Handoff — HR Management System
+# Handoff — Crewly HR Management System
 
-_Last updated: 2026-11-08_
+_Last updated: 2026-11-09_
 
-> **Direction change (2026-11-08):** the teacher does **not** accept Inertia. The course brief
-> (`hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`, untracked on purpose)
-> requires a Laravel REST API + a React SPA (React Router, Axios, Redux Toolkit chosen).
-> See **SPA rebuild plan** below.
+Read this first when picking the project up. It says where things are, what's done, what's left, and the decisions behind them. For how the code works, read [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md).
 
-## Where we are
+---
 
-- **Repo:** `Leyeft/Re_HR_Management` (our own repo — **do not work in the GitHub Classroom repo**).
-- **Branch:** `main` — the React SPA + REST API version (fast-forwarded from `react-frontend` on 2026-11-09; that branch is identical and can be deleted). The old Blade version is in the history before commit `968c3b2`.
-- **App:** Laravel 12 + React (via Inertia) + MySQL. The Laravel app is in `hr-system/hr-system/`.
-- **Status:** React conversion complete. Most bugs below are now fixed, plus new features added
-  (see **Progress — 2026-11-07**). App builds and runs locally.
+## 1. Where we are
 
-## Progress — 2026-11-07
+| | |
+| --- | --- |
+| **App** | Crewly, a Laravel 12 **REST API** + **React 18 SPA** (React Router, Redux Toolkit, Axios) + MySQL, with Sanctum auth |
+| **Code** | `hr-system/hr-system/` inside this repo |
+| **Repo / branch** | `github.com/Leyeft/Re_HR_Management`, branch **`main`** (git remote `personal`). Local `main` tracks `personal/main`. `react-frontend` is an old branch, identical to an earlier `main`; it can be deleted |
+| **Live site** | **https://rehrmanagement-production.up.railway.app** (Railway). It redeploys automatically on every push to `main` |
+| **Tests** | **169 passing**: 31 unit + 138 API feature tests (`php artisan test`) |
+| **Course brief** | `hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`. **Deliberately left untracked**: never commit it, because `public/` is served to the web |
+| **Estimated grade vs. brief** | About 83–90%, if the defense goes well (see section 5) |
 
-**Bugs fixed** (numbers refer to the Findings tables below):
-- #1 `role` now in `User::$fillable` — roles save correctly. Existing `admin@test.com`/`hr@test.com` set to admin/hr.
-- #2 model typo fixed (`reject_reason` → `rejection_reason`) — Head/HR rejection reasons now save.
-- #3 employee update rank limited to `employee`/`head`.
-- #5 public registration **removed** (closed system — Admin/HR create accounts). Leave pages are now
-  null-safe for accounts with no employee profile (show a notice / redirect, no 500).
-- #8 + #11 employee & department management restricted to **Admin + HR** via `EnsureAdminOrHr`
-  middleware (`app/Http/Middleware/EnsureAdminOrHr.php`); nav links hidden from others.
-- #9 Head-only check on the approvals page restored (null-safe).
-- #12 logo replaced (Crewly). #13 `/` redirects (login or dashboard); Welcome register link removed.
+**State at the end of the last session:** everything was committed **and pushed** (last commit `4011b7d`, docs + code comments). Railway was redeploying with the holiday import, Clear all, and the docs.
 
-**New features**
-- **Login page** redesigned (`Pages/Auth/Login.jsx`) — split-screen Crewly design, wired to real auth.
-- **Change Password** moved to its own page (`Pages/Profile/Password.jsx`, route `profile.password`),
-  reached by a "Reset Password" button on the profile; sits behind `auth`.
-- **Two-step leave approval:** Employee → **Head** (`pending_head`) → **HR** (`pending_hr`) → `approved`.
-  Reject at either stage ends it. Admin can also give the final sign-off. Audit columns added
-  (`head_approved_by/at`, `hr_approved_by/at`) — migration `2026_11_07_000000_add_hr_stage_to_leave_requests`.
-- **Dashboard** is role-scoped: Admin/HR see org-wide stats; everyone else sees only their own leave summary.
-- **Delete employee** uses a type-`DELETE` confirmation modal. Deleting the **last Admin or last HR**
-  is blocked (themed in-modal message + server backstop) so the realm always keeps a ruler and a healer.
-- **Theme** applied app-wide (navy/teal) — see Branding & theme below.
+---
 
-**New features (later on 2026-11-07, committed `648c023` onward):**
-- **Leave entitlement by years of service** (from a new **Date Hired** field): <1y=3, 1–7y=10, 8–15y=15,
-  16+y=20. Enforced on annual requests; balance shown on dashboard, leave pages, request form,
-  employee list, create/edit. (migration `...000002_add_date_hired_to_employees`)
-- **Employee details popup** (click a name) on Employees, Approvals, History, All Leave — shows profile +
-  this year's leave entries. **"View more"** (Admin/HR) opens a full **profile page** `employees/{id}`
-  with full leave history and approver names.
-- **Employee ID** = `department_id * 100000 + sequence` (e.g. 100001, 200001), auto-assigned on create,
-  permanent. (migration `...000004_add_employee_code_to_employees`)
-- **Leave types**: annual (counts, Head→HR), **sick** (own 30-day/yr cap, past dates allowed,
-  auto-recorded no approval), **professional** (no limit, Head→HR).
-  (migration `...000003_add_type_to_leave_requests`)
-- **A Head's own leave skips to HR** (can't self-approve).
-- **Overlap check**: can't submit a request overlapping a live one.
-- **Cancel a request** (owner only) with a required reason → status `cancelled`.
-  (migration `...000005_add_cancel_to_leave_requests`)
-- **Department delete blocked** when it still has employees (castle message + server backstop);
-  Departments list shows an employee count.
+## 2. Run it locally
 
-## Progress — 2026-11-08
-
-- **Working days:** leave counts Mon–Fri only and skips **public holidays** (e.g. Mon–Wed = 3 days;
-  Mon–Wed with a Tuesday holiday = 2). `LeaveRequest::workingDaysBetween`, mirrored in
-  `Utils/leave.js` `workingDays` (holidays shared to the browser as the `holidays` Inertia prop).
-  Requests with no working days are refused.
-- **Public holidays:** HR/Admin add/remove them on the Leave Settings page (`holidays` table,
-  `App\Models\Holiday`). "Same date every year" makes it recurring (e.g. Christmas); otherwise it's
-  a one-off date (for holidays that move each year). Seeder adds New Year's Day + Christmas.
-- **Leave rollover (HR decides):** new **Leave Settings** page (`/settings/leave`, Admin/HR only) with an
-  on/off switch and a max-days cap (default off, max 5). When on, last year's unused annual days
-  (entitlement − approved annual) are added to this year, capped. Stored in a new `settings` table
-  (`App\Models\Setting`). Balance now returns `carried_over` and `total`.
-- **Last Head protection:** a department's only Head can't be demoted, moved or deleted while the
-  department still has other staff (form error / themed delete-dialog blocker + server check).
-  Fallback: if a department has **no** Head (e.g. brand new), leave goes straight to HR.
-- **#4 fixed:** Edit Employee now has a System Role field. Can't remove the last Admin/HR via a role
-  change; HR/Admin still can't also be Head.
-- **#7 fixed:** renaming a department to a name that already exists shows "Another department
-  already has this name" instead of a 500.
-- **#14 fixed:** app name is **Crewly** (`.env`, `.env.example`, fallbacks).
-- **#15 fixed:** tests now pass — **98 passed**. The 2026-11-07 migrations used MySQL-only
-  `ALTER … MODIFY`, which broke every test on SQLite; switched to Schema `->change()` (same result
-  on MySQL). Outdated tests rewritten; new suites: `LeaveFlowTest`, `LeaveRolloverTest`,
-  `EmployeeManagementTest`, `DepartmentTest`.
-- **#16 fixed:** `DemoSeeder` (called by `DatabaseSeeder`): 5 departments, Admin, HR, a Head per
-  department, staff, leave in every status. All passwords `password`. Re-runnable (skips existing
-  emails). Fresh demo DB: `php artisan migrate:fresh --seed`. Empty `DevSeeder` removed.
-
-- **Filters + exports:** All Leave now has filters (employee, department, status, type, date range —
-  a range keeps any leave that overlaps it). CSV + PDF export on **All Leave** and **Employees**, using
-  the page's current filters (shared queries: `LeaveRequest::scopeFilter`, `Employee::listQuery`).
-  **Download PDF** on an employee's profile = their full leave record. `ReportController`, PDF views in
-  `resources/views/reports/` (dompdf: `barryvdh/laravel-dompdf`). CSV has a UTF-8 BOM for Excel and
-  neutralises formula text (CSV injection). Admin/HR only. Tests: `ReportTest` (13).
-
-**Still open / to decide (next up):**
-- App timezone is `UTC` (`config/app.php`), so report "Generated" times and approval times show UTC.
-- Year-boundary leave counts against the start year only.
-- Employee ID is 7 digits once a department id reaches 10 (still unique) — left as-is unless we
-  decide to zero-pad to fixed width.
-
-**Run `php artisan migrate`** on any other machine to apply the 2026-11-07 migrations
-(HR stage, department description, date hired, leave type, employee code, cancel) and the
-2026-11-08 `settings` and `holidays` tables.
-
-## Local setup (done on this PC on 2026-11-03)
-
-| Tool | Version | Notes |
-|---|---|---|
-| Git | 2.56 | |
-| PHP | 8.4 (NTS) | `php.ini` created; enabled curl, fileinfo, intl, mbstring, openssl, pdo_mysql, pdo_sqlite, sqlite3, zip |
-| Composer | 2.11 | Installed next to `php.exe` (`composer.bat` + `composer.phar`) |
-| Node.js / npm | 26.13 / 11.20 | |
-| MySQL | 8.4 | Windows service `MySQL84`, auto-starts, port 3306, user `root` with **no password** (local dev only) |
-
-- Database `hr_system` created, all migrations run.
-- `.env` created from `.env.example` (MySQL settings, app key generated). It is git-ignored.
-- `composer install`, `npm ci`, `npm run build` all done.
-
-**Run the app:**
-```
+```bash
 cd C:\laragon\www\HR_Management\final-project-Leyeft-1\hr-system\hr-system
-php artisan serve        # http://127.0.0.1:8000
-npm run dev              # second terminal, only while editing React files
-```
-`/` redirects to the dashboard if signed in, otherwise the login page.
-
-**Test accounts** (local database): `admin@test.com` (admin) and `hr@test.com` (hr) — password `password`.
-Department heads: `james@test.com` (Finance), `itsupport@test.com`, `housekeep@test.com`, `maintain@test.com`.
-Employees e.g. `bobby@test.com`. Most passwords are `password`; `itsupport`/`jackie` are `12345678`.
-
-**Tests:** `php artisan test` → 111 passed — 32 unit tests (`tests/Unit`: allowance tiers, working days + holidays, settings, employee IDs) and 79 feature tests (SQLite in memory; no build or MySQL needed).
-
-## Roles in the app
-
-- `users.role`: `employee` (default), `hr`, `admin` — system access.
-- `employees.rank`: `employee` or `head` — department hierarchy. (The database also allows `manager`, but the
-  app never uses it.)
-- Head of Department approves/rejects leave for their department. HR has a read-only view of all leave.
-  Admin manages departments and employees.
-
-## Findings
-
-### 🔴 Broken features
-
-| # | Problem | Where | Effect |
-|---|---|---|---|
-| 1 | `role` not in User `$fillable` | `app/Models/User.php:22` | Every new user is saved as `employee`, even when HR/Admin is chosen |
-| 2 | `$fillable` says `reject_reason`, column is `rejection_reason` | `app/Models/LeaveRequest.php:16` | Rejection reason typed by the Head is never saved |
-| 3 | Employee update accepts rank `admin`/`hr`; DB enum is `employee`/`head`/`manager` | `app/Http/Controllers/EmployeeController.php:130` | Choosing those ranks → server error (500) |
-| 4 | Employee edit can't change `role` | `EmployeeController@update` + `Employees/Edit.jsx` | No way to promote someone to HR/Admin after creation |
-| 5 | Public `/register` creates users with no employee record | `Auth/RegisteredUserController.php` | Leave/approval pages crash for those users (`$employee` is null) |
-| 6 | `employees.department_id` is `cascadeOnDelete` | `database/migrations/2025_12_15_015632_create_employees_table.php:18` | Deleting a department deletes its employee rows but leaves their user accounts (which then crash) |
-| 7 | Department update doesn't validate name uniqueness | `DepartmentController@update` | Duplicate name → database error (500) |
-
-### 🟠 Security / permissions
-
-| # | Problem | Where |
-|---|---|---|
-| 8 | No Admin-only check on departments and employees — any logged-in user can create/edit/delete | `routes/web.php:95-96`, both controllers |
-| 9 | Head-only check commented out on the approvals page | `LeaveApprovalController.php:16-18` |
-| 10 | A Head can approve/reject **their own** leave request | `LeaveApprovalController::authorizeAction` |
-| 11 | Nav shows Departments/Employees to everyone | `resources/js/Layouts/AuthenticatedLayout.jsx:13-14` |
-
-### 🟡 Branding / cleanup
-
-| # | Change |
-|---|---|
-| 12 | Replace the default Laravel logo — `resources/js/Components/ApplicationLogo.jsx` |
-| 13 | Replace/remove the default Laravel welcome page — `resources/js/Pages/Welcome.jsx` (currently unused) |
-| 14 | Set the app name (`APP_NAME` in `.env` / `.env.example`) |
-| 15 | Fix the 2 outdated tests; add tests for leave flow and permissions |
-| 16 | Add a sample-data seeder (admin, HR, Head, employees, departments). `DevSeeder` is empty; `DatabaseSeeder` only makes a test user |
-
-## Database changes
-
-Most fixes are code-only. Planned database change (as a **new migration**, not by editing old ones):
-
-- **#6:** change `employees.department_id` from `cascadeOnDelete` to `restrictOnDelete`, so a department with
-  employees can't be deleted. The app should show a friendly message ("Move or remove the employees first").
-- **#3:** code-only fix (limit rank to `employee`/`head`) unless we decide to keep a Manager rank.
-
-## Plan
-
-1. **Fix #1–#11** (backend bugs + permissions), plus the migration for #6.
-2. **Branding** (#12–#14), after choosing a logo and name.
-3. **Tests + sample-data seeder** (#15–#16).
-
-## Open decisions (answer before starting step 1)
-
-- [ ] **Disable public sign-up (#5)?** Recommended: yes — only Admin creates accounts (normal for HR systems).
-- [ ] **Manager rank?** Recommended: no — keep only Employee and Head for now.
-- [ ] **Logo:** use our own image, or have a simple one made?
-
-## Branding & theme (added 2026-11-07)
-
-- **Logo:** "Crewly" SVGs live in `hr-system/hr-system/public/logo/`
-  (`crewly-logo.svg` light, `crewly-logo-on-dark.svg` for dark backgrounds, plus icon + favicon).
-  Rendered via `resources/js/Components/ApplicationLogo.jsx` — pass `dark` for the on-dark version.
-  Used in the top nav (dark) and the login/register pages (light).
-- **Color palette** — defined once as CSS variables in `resources/css/app.css` (`:root`) and
-  exposed to Tailwind in `tailwind.config.js` as `primary`, `accent`, `success`, `warning`,
-  `danger`, `info` (each with `-bg`/`hover`/`text`/`tint` where relevant), plus `bg`, `surface`,
-  `line`, `content`, `muted`. Use these classes (e.g. `bg-primary`, `text-accent`) instead of
-  raw Tailwind colors so the whole app stays consistent. To re-theme, edit the hex values in
-  `app.css` only — nothing else needs to change.
-
-```css
-:root {
-  --color-primary: #12305A;  --color-primary-hover: #0C2342;
-  --color-accent: #2EC4B6;   --color-accent-text: #0B7A72;  --color-accent-tint: #E0F6F3;
-
-  --color-bg: #F4F7FA;       --color-surface: #FFFFFF;
-  --color-border: #DDE4EC;   --color-text: #1A2B3C;         --color-text-muted: #4A5D73;
-
-  --color-success: #187A46;  --color-success-bg: #E3F4EA;
-  --color-warning: #9A5B00;  --color-warning-bg: #FDF1DC;
-  --color-danger:  #C93A3A;  --color-danger-bg:  #FBE7E7;
-  --color-info:    #2F6FCC;  --color-info-bg:    #E6EFFB;
-}
+php artisan serve          # → http://127.0.0.1:8000
+npm run dev                # second terminal, only while editing React (or: npm run build)
+php artisan test           # 169 tests, SQLite in memory, ~1 min
 ```
 
-- **Applied to:** page background, navy top nav (light text + teal active underline), `PrimaryButton`
-  (navy), `SecondaryButton`, `DangerButton`, nav links, `LeaveStatus` badges, `FlashMessage`,
-  `PageHeader`. Run `npm run build` after changing colors.
+- **Database:** MySQL `hr_system` (Laragon, root, no password). All migrations have run locally.
+- **Local data:** this is **older hand-made data**, not the demo seeder's. For example, `itsupport@test.com` has password `12345678`, while most others use `password`. To get the clean demo company run `php artisan migrate:fresh --seed`, which **wipes local data**.
+- **PHP:** Laragon PHP 8.4. The **`zip` extension was enabled** in `C:\laragon\bin\php\php-8.4.22-Win32-vs17-x64\php.ini` (line 813) so Excel import works. If `php artisan serve` was started before an ini change, restart it.
+- **Timezone:** `APP_TIMEZONE=Asia/Bangkok` (GMT+7).
 
-## SPA rebuild plan (started 2026-11-08)
+**Demo accounts** (from `DemoSeeder`): admin@test.com (Admin), hr@test.com (HR), james@test.com (Head of Finance), itsupport@test.com (Head of IT), housekeep@test.com, maintain@test.com (Heads), bobby@ / fiona@ (Finance), jackie@ / kevin@ (IT), lara@ (Housekeeping), noel@ (Maintenance), plus 8 factory-made staff with random emails.
+- **Locally:** the password is `password`.
+- **Live:** the password is the private `DEMO_PASSWORD` set in Railway Variables. The user knows it; it is **not** in this repo or the chat.
+
+---
+
+## 3. Live deployment (Railway)
+
+These were set up by the user in the Railway dashboard, with guidance. The full guide is [DEPLOYMENT.md](DEPLOYMENT.md).
+
+- **Services:** the app (from GitHub), and **MySQL** (service name `MySQL`).
+- **App settings:**
+  - Root Directory `/hr-system/hr-system`
+  - branch `main`
+  - healthcheck `/up`
+  - domain `rehrmanagement-production.up.railway.app`
+  - volume mounted at `/app/storage/app/public`, so profile photos persist
+- **Variables:**
+  - `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` (private), `APP_URL=https://rehrmanagement-production.up.railway.app`
+  - `DB_CONNECTION=mysql`, `DB_URL=${{MySQL.MYSQL_URL}}`
+  - `SESSION_SECURE_COOKIE=true`, `SANCTUM_STATEFUL_DOMAINS=<domain>`
+  - `LOG_CHANNEL=stderr`, `MAIL_MAILER=log`, `AVATAR_DISK=public`
+  - `DEMO_PASSWORD` (private)
+  - `RAILPACK_PHP_VERSION=8.4`
+- **Pre-Deploy Command:** `php artisan migrate --force && php artisan db:seed --force`. It was used for the first deploy. **It can be cleared now.** It's harmless to leave, because the seeder is idempotent.
+- **Railpack** auto-detects Laravel, runs Composer, `npm run build`, migrations and `storage:link` on start, and serves with FrankenPHP. Railway's `railway.json` config files are **deprecated**, which is why all settings are in the dashboard.
+- **Fixed during deploy:** `composer.json` now requires `php ^8.4`, because the locked packages need 8.4. This was merged from Railway's PR #1. It also declares `ext-pdo_mysql`, `ext-gd` and `ext-zip`, so Railpack installs them.
+- **Verified live:** `/up` 200, SPA loads, API 401 shape, DB connected, secure cookies, http→https.
+- **Not yet confirmed:** the user signing in on the live site with the demo password, and whether the new holiday features deployed cleanly after the last push.
+
+---
+
+## 4. What's done
+
+The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-11-08:
 
 | Phase | What | Status |
 | --- | --- | --- |
-| 1 | REST API next to the current app: Sanctum SPA cookie auth, `role:`/`head` middleware, `{code,message,errors}` JSON errors, Resource classes, FormRequests, services (`LeaveService`, `EmployeeService`), 34 API tests | **Done** (`c9429c4`, `c8f75d4`, `730a0de`) |
-| 2 | SPA shell at `/app`: React Router, Redux Toolkit store (auth, toasts), Axios client (CSRF, 419 retry, error shape), private routes, toasts, layout, SPA login | **Done** (`f8a3521`, `a2d731d`) |
-| 3 | All pages moved to the SPA: dashboard (charts), profile, passwords, departments (modal CRUD, client-side search), employees (server-side filters, profile, form), my leave, request leave, approvals, dept history, all leave, leave settings | **Done** (`85facc2`…) |
-| 4 | Department hierarchy (self-referencing `parent_id`, loop-proof), skills + `employee_skill` pivot with level, soft deletes + restore (users, employees, departments), factories (Department, Employee, Skill, LeaveRequest) | **Done** (`798b7f7` + SPA) |
-| 5 | In-app notifications (bell, 30 s polling; email deferred until deployed), activity/audit log (LogsActivity trait, old/new values, sign-ins), last login, avatar upload (JPG/PNG/WebP ≤ 2 MB) | **Done** (`d18d6d6` + SPA) |
-| 6 | SPA at the site root (old /app and /dashboard redirect); Inertia, Breeze, Ziggy and all web controllers removed; email verification on the API; web tests moved to the API (146 tests) | **Done** (`46159df`, `f63e3d5`) |
-| 7a | Docs: Postman collection (`docs/postman`, 65 requests, real example responses, token auth), README rewrite (setup, roles table, endpoints, examples, error format, ERD), TESTING.md updated (153 tests, 31 security checks, B24–B26), Admin vs HR distinction (`EmployeePolicy`), API tokens | **Done** |
-| 7b | Deploy online (needs a hosting account created by the user) and add the URLs to the README | Next — waiting on the user |
+| 1 | REST API: Sanctum SPA auth, `role:` / `head` middleware, `{code,message,errors}` JSON errors, Resources, FormRequests, services | ✅ |
+| 2 | SPA shell: React Router, Redux Toolkit, Axios client, private routes, toasts, layout | ✅ |
+| 3 | All pages moved to the SPA | ✅ |
+| 4 | Department hierarchy (self-referencing `parent_id`), skills pivot with a level, soft deletes + restore, factories | ✅ |
+| 5 | In-app notifications (bell, 30 s polling), activity log, last login, avatar upload | ✅ |
+| 6 | SPA at the site root; Inertia, Breeze and Ziggy removed; email verification on the API; web tests moved to the API | ✅ |
+| 7a | Docs: README, Postman collection, TESTING.md, DEPLOYMENT.md, HOW_IT_WORKS.md; Admin vs HR (`EmployeePolicy`); API tokens | ✅ |
+| 7b | Deployed to Railway | ✅ |
 
-**API notes:** routes in `routes/api.php` (names prefixed `api.` so they don't clash with web route names).
-The SPA must call `GET /sanctum/csrf-cookie` before `POST /api/auth/login`. `GET /api/auth/me` returns
-the user, employee and a `can` map (manage_staff, sign_off_leave, approve_department_leave, request_leave).
-Reports (CSV/PDF) stay on web routes (`/reports/...`); they use the same session cookie.
+**Features added after the rebuild (2026-11-08/09):**
+- **Leave rules:** working days (weekends and holidays skipped); allowance by years of service (3/10/15/20); sick leave with a 30-day cap, auto-approved; professional leave unlimited; HR-controlled rollover with a maximum; overlap check; cancel with a reason.
+- **Holidays:** plain dates, uploaded **each year**. There's **no "recurring" flag any more**; it was removed by a migration because dates change yearly.
+  - **Import from Excel/CSV** (`POST /api/holidays/import`, `dry_run=1` for a preview) with a downloadable template (`/templates/holidays.{xlsx,csv}`).
+  - Upload rule (user's choice): **same date → name replaced; new date → added; other saved dates kept**.
+  - **Clear all** (`DELETE /api/holidays`). Holidays are listed grouped by year.
+- **Reports:** CSV/PDF of All Leave and Employees (same filters as the page); per-employee PDF leave record.
+- **Production prep:** trusted proxies, https forced in production, configurable `AVATAR_DISK`, `DEMO_PASSWORD` via config, `.env.production.example`.
+- **Code comments:** every source file has a header comment; the Employee model has numbered sections; unused leftovers were removed.
 
+**Docs in the repo:**
+- [README.md](README.md): features, architecture, install, roles table, endpoints, ERD
+- [TESTING.md](TESTING.md): plan, unit/integration/system/security tests, bug log B01–B26
+- [DEPLOYMENT.md](DEPLOYMENT.md)
+- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md): study guide and defense Q&A
+- [docs/postman/](docs/postman/): collection + environment, token auth
+
+---
+
+## 5. What's left / open items
+
+**For the user:**
+- **Defense prep:** read `docs/HOW_IT_WORKS.md`, especially sections 3 (a request traced through the files) and 7 (questions). The brief says "unable to explain own code: −25%", and live code changes may be requested.
+- **Sign in on the live site** with the demo password and check the dashboard. If the credentials fail, the seed didn't run; check the deploy logs for "Seeding".
+- **Run the system test cases** by hand (ST01–ST21 in TESTING.md) and fill in the Result column.
+- **GitHub Classroom repo:** the brief's deliverable is the Classroom link (`origin` remote), but **pushing there fails with 403**, and it only has the old Blade version. Ask the teacher to fix access, or to accept the personal repo.
+
+**Suggested next tasks (not done yet):**
+- Add the **live URLs** to the README table (it still says "Not deployed yet"), and set `baseUrl` in a Postman environment for the live site.
+- Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet.
+- **Real email** on the live site (password reset, verification): currently `MAIL_MAILER=log`. Needs a mail service account (Mailtrap, Resend or Gmail SMTP) created by the user.
+- **Registration:** the brief lists "Registration", but public sign-up was removed by design (HR creates accounts). The options are to ask the teacher, or to add a "Request an account" form that HR approves.
+- **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk if needed.
+- **Dark mode:** a bonus in the brief, not done.
+- **Online Testing doc** (claude.ai artifact from an early session): **outdated**. TESTING.md in the repo is current.
+- `react-frontend` branch: can be deleted.
+
+---
+
+## 6. Key decisions and gotchas
+
+- **Inertia is not allowed** (teacher), so the app must stay a REST API + SPA. Don't reintroduce Inertia or Blade pages.
+- **Redux Toolkit** was chosen for global state. Core data lives in slices; only form typing is local.
+- **Closed system:** there's no public sign-up. Admin/HR create accounts.
+- **Roles:**
+  - `users.role` is employee, hr or admin (system access).
+  - `employees.rank` is employee or head (department).
+  - HR and Admin can't be Heads.
+  - **Only an Admin manages Admin accounts.**
+- **Safeguards:** the system always keeps at least one Admin and one HR; a department with staff always has a Head. A department without a Head sends leave straight to HR.
+- **Soft deletes** on users, employees and departments; Employee IDs are never reused.
+- **Holidays:** no recurring flag; uploads replace same-date names only (not whole date ranges, which was explicitly decided).
+- **Email:** in-app notifications only until a mail service exists (user's choice).
+- **Pushing:** push to `personal` (`Re_HR_Management`). Ask the user before pushing. Never push to `origin` (Classroom) without the user asking.
+- **Tooling notes for the next session:**
+  - The `gh` CLI isn't installed.
+  - Inline Python heredocs in Bash mangle backslashes in PHP namespaces. Use script files or the Edit tool.
+  - The Chrome extension wasn't connected, so the UI has **never been visually checked** by the assistant. Ask the user to check screens.
+
+---
+
+## 7. Branding and theme
+
+- **Logo:** "Crewly" SVGs in `hr-system/hr-system/public/logo/` (`crewly-logo.svg`, `crewly-logo-on-dark.svg`, icon, favicon), rendered by `resources/js/Components/ApplicationLogo.jsx` (`dark` prop for the navy bar).
+- **Colours** are defined once as CSS variables in `resources/css/app.css` (`:root`) and exposed to Tailwind (`primary`, `accent`, `success`, `warning`, `danger`, `info`, `bg`, `surface`, `line`, `content`, `muted`). To re-theme, edit the hex values in `app.css` only.
+
+```css
+--color-primary: #12305A;  --color-accent: #2EC4B6;  --color-accent-text: #0B7A72;
+--color-bg: #F4F7FA;       --color-text: #1A2B3C;    --color-text-muted: #4A5D73;
+--color-success: #187A46;  --color-warning: #9A5B00; --color-danger: #C93A3A;  --color-info: #2F6FCC;
+```
+
+---
+
+## 8. History
+
+- **2025-12-15:** original Blade version, in the history before commit `968c3b2`.
+- **2026-11-02:** converted to React + Inertia.
+- **2026-11-03:** code review; 16 issues logged.
+- **2026-11-07:** fixes and leave features.
+- **2026-11-08:** the teacher rejected Inertia; rebuilt as a REST API + SPA (phases 1–7); deployed to Railway.
+- **2026-11-09:** holiday import / Clear all / no recurring; docs and comments.
+
+The full bug log is in TESTING.md (B01–B26). Every change is in `git log`.
