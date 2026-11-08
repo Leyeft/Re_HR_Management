@@ -2,6 +2,11 @@
 
 _Last updated: 2026-11-08_
 
+> **Direction change (2026-11-08):** the teacher does **not** accept Inertia. The course brief
+> (`hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`, untracked on purpose)
+> requires a Laravel REST API + a React SPA (React Router, Axios, Redux Toolkit chosen).
+> See **SPA rebuild plan** below.
+
 ## Where we are
 
 - **Repo:** `Leyeft/Re_HR_Management` (our own repo — **do not work in the GitHub Classroom repo**).
@@ -220,3 +225,21 @@ Most fixes are code-only. Planned database change (as a **new migration**, not b
 - **Applied to:** page background, navy top nav (light text + teal active underline), `PrimaryButton`
   (navy), `SecondaryButton`, `DangerButton`, nav links, `LeaveStatus` badges, `FlashMessage`,
   `PageHeader`. Run `npm run build` after changing colors.
+
+## SPA rebuild plan (started 2026-11-08)
+
+| Phase | What | Status |
+| --- | --- | --- |
+| 1 | REST API next to the current app: Sanctum SPA cookie auth, `role:`/`head` middleware, `{code,message,errors}` JSON errors, Resource classes, FormRequests, services (`LeaveService`, `EmployeeService`), 34 API tests | **Done** (`c9429c4`, `c8f75d4`, `730a0de`) |
+| 2 | SPA shell: React Router, Redux Toolkit store, Axios client (CSRF + error handling), private routes, toasts, layout | Next |
+| 3 | Move pages over in groups: auth + dashboard → employees + departments → leave + approvals → settings + reports | |
+| 4 | Database gaps: department hierarchy (self-referencing `parent_id`), employee skills (pivot), soft deletes, factories | |
+| 5 | Notifications (leave submitted/approved/rejected, in-app + email), activity/audit log + last login, avatar upload | |
+| 6 | Remove Inertia + web controllers; convert old feature tests to API tests | |
+| 7 | Docs: Postman collection, README (setup, endpoints, roles table, ERD, deployed URL); deploy online | |
+
+**API notes:** routes in `routes/api.php` (names prefixed `api.` so they don't clash with web route names).
+The SPA must call `GET /sanctum/csrf-cookie` before `POST /api/auth/login`. `GET /api/auth/me` returns
+the user, employee and a `can` map (manage_staff, sign_off_leave, approve_department_leave, request_leave).
+Reports (CSV/PDF) stay on web routes (`/reports/...`); they use the same session cookie.
+
