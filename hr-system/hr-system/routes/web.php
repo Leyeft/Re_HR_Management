@@ -8,7 +8,9 @@ use App\Http\Controllers\{
     LeaveRequestController,
     LeaveApprovalController,
     HRLeaveController,
-    DashboardController
+    DashboardController,
+    LeaveSettingsController,
+    ReportController
 };
 
 /*
@@ -108,6 +110,20 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(\App\Http\Middleware\EnsureAdminOrHr::class)->group(function () {
         Route::resource('departments', DepartmentController::class)->except('show');
         Route::resource('employees', EmployeeController::class); // includes show (profile page)
+
+        // Company leave policy (e.g. whether unused annual leave rolls over).
+        Route::get('/settings/leave', [LeaveSettingsController::class, 'edit'])->name('settings.leave');
+        Route::put('/settings/leave', [LeaveSettingsController::class, 'update'])->name('settings.leave.update');
+        Route::post('/settings/holidays', [LeaveSettingsController::class, 'storeHoliday'])->name('settings.holidays.store');
+        Route::delete('/settings/holidays/{holiday}', [LeaveSettingsController::class, 'destroyHoliday'])->name('settings.holidays.destroy');
+
+        // Exports (CSV / PDF) — same filters as the page they come from.
+        Route::get('/reports/leave.{format}', [ReportController::class, 'leave'])
+            ->whereIn('format', ['csv', 'pdf'])->name('reports.leave');
+        Route::get('/reports/employees.{format}', [ReportController::class, 'employees'])
+            ->whereIn('format', ['csv', 'pdf'])->name('reports.employees');
+        Route::get('/reports/employees/{employee}/leave-record.pdf', [ReportController::class, 'employee'])
+            ->name('reports.employee');
     });
 });
 

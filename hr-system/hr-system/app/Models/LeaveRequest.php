@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class LeaveRequest extends Model
 {
@@ -29,10 +30,48 @@ class LeaveRequest extends Model
         'hr_approved_at' => 'datetime',
     ];
 
-    // Number of calendar days this request covers (inclusive of both ends).
+    // Number of working days this request covers (weekends and public holidays don't count).
     public function days(): int
     {
-        return $this->start_date->diffInDays($this->end_date) + 1;
+        return self::workingDaysBetween($this->start_date, $this->end_date);
+    }
+
+    // Monday–Friday days from $start to $end (inclusive), skipping public holidays.
+    public static function workingDaysBetween($start, $end): int
+    {
+        $day = Carbon::parse($start)->startOfDay();
+        $end = Carbon::parse($end)->startOfDay();
+        $count = 0;
+
+        while ($day->lte($end)) {
+            if (! $day->isWeekend() && ! Holiday::isHoliday($day)) {
+                $count++;
+            }
+            $day->addDay();
+        }
+
+        return $count;
+    }
+
+    // Filters shared by the All Leave page and its exports, so both always show the same rows.
+    // Keys: search (name/email), department, status, type, from, to (Y-m-d).
+    public const FILTERS = ['search', 'department', 'status', 'type', 'from', 'to'];
+
+    public function scopeFilter($query, array $filters)
+    {
+        $filled = fn (string $key) => isset($filters[$key]) && $filters[$key] !== '';
+
+        return $query
+            ->when($filled('search'), fn ($q) => $q->whereHas('employee.user', fn ($u) => $u
+                ->where(fn ($w) => $w
+                    ->where('name', 'like', '%' . $filters['search'] . '%')
+                    ->orWhere('email', 'like', '%' . $filters['search'] . '%'))))
+            ->when($filled('department'), fn ($q) => $q->where('department_id', $filters['department']))
+            ->when($filled('status'), fn ($q) => $q->where('status', $filters['status']))
+            ->when($filled('type'), fn ($q) => $q->where('type', $filters['type']))
+            // Date range keeps any leave that overlaps it.
+            ->when($filled('from'), fn ($q) => $q->where('end_date', '>=', $filters['from']))
+            ->when($filled('to'), fn ($q) => $q->where('start_date', '<=', $filters['to']));
     }
 
     public function employee()

@@ -6,8 +6,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { inclusiveDays } from '@/Utils/leave';
-import { Head, useForm } from '@inertiajs/react';
+import { workingDays } from '@/Utils/leave';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -20,7 +20,8 @@ export default function Create({ leaveSummary }) {
     });
 
     const isSick = data.type === 'sick';
-    const requestedDays = inclusiveDays(data.start_date, data.end_date);
+    const { holidays } = usePage().props;
+    const requestedDays = workingDays(data.start_date, data.end_date, holidays);
 
     // Which allowance applies (professional has none).
     const limit =
@@ -30,6 +31,7 @@ export default function Create({ leaveSummary }) {
               ? leaveSummary?.sick?.remaining
               : null;
     const overLimit = limit != null && requestedDays !== null && requestedDays > limit;
+    const weekendOnly = requestedDays === 0;
 
     const note = {
         annual: 'Counts against your annual allowance. Goes to your Head, then HR.',
@@ -93,16 +95,22 @@ export default function Create({ leaveSummary }) {
                         <InputError message={errors.reason} className="mt-1" />
                     </div>
 
-                    {requestedDays !== null && (
+                    {weekendOnly && (
+                        <p className="mt-4 text-sm text-danger">
+                            These dates are all weekends or public holidays — there are no working days to request.
+                        </p>
+                    )}
+
+                    {requestedDays > 0 && (
                         <p className={`mt-4 text-sm ${overLimit ? 'text-danger' : 'text-muted'}`}>
-                            This request is {requestedDays} day{requestedDays === 1 ? '' : 's'}.
+                            This request is {requestedDays} working day{requestedDays === 1 ? '' : 's'} (weekends and public holidays don't count).
                             {overLimit &&
                                 ` That's more than your ${limit} remaining ${isSick ? 'sick days' : 'days'} this year — please visit the HR office for more details, or if you need help.`}
                         </p>
                     )}
 
                     <div className="mt-6 flex justify-end">
-                        <PrimaryButton disabled={processing || overLimit}>
+                        <PrimaryButton disabled={processing || overLimit || weekendOnly}>
                             {isSick ? 'Record Sick Leave' : 'Submit Request'}
                         </PrimaryButton>
                     </div>

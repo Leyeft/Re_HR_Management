@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Department;
+use Illuminate\Support\Carbon;
 
 class Employee extends Model
 {
@@ -30,6 +31,24 @@ class Employee extends Model
         return $base + $lastSeq + 1;
     }
 
+    // Employee list with search/department/rank filters and name sort — shared by the
+    // Employees page and its exports, so both always show the same people.
+    public static function listQuery(array $filters)
+    {
+        $filled = fn (string $key) => isset($filters[$key]) && $filters[$key] !== '';
+        $sort = ($filters['sort'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        return static::join('users', 'employees.user_id', '=', 'users.id')
+            ->with(['user', 'department'])
+            ->when($filled('search'), fn ($q) => $q->where(fn ($w) => $w
+                ->where('users.name', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('users.email', 'like', '%' . $filters['search'] . '%')))
+            ->when($filled('department'), fn ($q) => $q->where('employees.department_id', $filters['department']))
+            ->when($filled('rank'), fn ($q) => $q->where('employees.rank', $filters['rank']))
+            ->orderBy('users.name', $sort)
+            ->select('employees.*');
+    }
+
     protected $casts = [
         'date_of_birth' => 'date:Y-m-d',
         'date_hired' => 'date:Y-m-d',
@@ -52,18 +71,26 @@ class Employee extends Model
 
     /* ===== Annual leave entitlement (based on years of service) ===== */
 
-    public function yearsOfService(): int
+    // Whole years of service as of $asOf (default: today).
+    public function yearsOfService($asOf = null): int
     {
-        return $this->date_hired ? (int) $this->date_hired->diffInYears(now()) : 0;
+        if (! $this->date_hired) {
+            return 0;
+        }
+        $asOf = $asOf ? Carbon::parse($asOf) : now();
+
+        return $this->date_hired->gt($asOf) ? 0 : (int) $this->date_hired->diffInYears($asOf);
     }
 
     // Days of leave allowed per year for this employee's length of service.
-    public function leaveEntitlement(): int
+    public function leaveEntitlement($asOf = null): int
     {
+        $years = $this->yearsOfService($asOf);
+
         return match (true) {
-            $this->yearsOfService() < 1 => 3,
-            $this->yearsOfService() <= 7 => 10,
-            $this->yearsOfService() <= 15 => 15,
+            $years < 1 => 3,
+            $years <= 7 => 10,
+            $years <= 15 => 15,
             default => 20,
         };
     }
@@ -74,8 +101,58 @@ class Employee extends Model
             $this->yearsOfService() < 1 => 'Under 1 year',
             $this->yearsOfService() <= 7 => '1–7 years',
             $this->yearsOfService() <= 15 => '8–15 years',
-            default => '15+ years',
+            default => '16+ years',
         };
+    }
+
+    // Unused annual days brought forward from last year — only when HR has
+    // switched rollover on, and never more than HR's maximum.
+    public function carriedOverDays(int $year): int
+    {
+        if (! Setting::rolloverEnabled() || ! $this->date_hired) {
+            return 0;
+        }
+
+        $lastYear = $year - 1;
+        $lastYearEnd = Carbon::create($lastYear, 12, 31);
+
+        // Wasn't employed yet last year: nothing to carry.
+        if ($this->date_hired->gt($lastYearEnd)) {
+            return 0;
+        }
+
+        $used = $this->leaveRequests()
+            ->where('type', 'annual')
+            ->where('status', 'approved')
+            ->whereYear('start_date', $lastYear)
+            ->get()
+            ->sum(fn ($leave) => $leave->days());
+
+        $unused = max(0, $this->leaveEntitlement($lastYearEnd) - $used);
+
+        return min($unused, Setting::rolloverMaxDays());
+    }
+
+    /* ===== Department hierarchy ===== */
+
+    // True when this employee is the only Head of their department while other
+    // people still work there — removing them would leave nobody to approve leave.
+    public function isLastHeadWithStaff(): bool
+    {
+        if ($this->rank !== 'head') {
+            return false;
+        }
+
+        $otherHeads = static::where('department_id', $this->department_id)
+            ->where('rank', 'head')
+            ->whereKeyNot($this->id)
+            ->exists();
+
+        $otherStaff = static::where('department_id', $this->department_id)
+            ->whereKeyNot($this->id)
+            ->exists();
+
+        return ! $otherHeads && $otherStaff;
     }
 
     // Sick leave allowance per calendar year.
@@ -98,6 +175,8 @@ class Employee extends Model
             ->sum(fn ($leave) => $leave->days());
 
         $annualEnt = $this->leaveEntitlement();
+        $carried = $this->carriedOverDays($year);
+        $annualTotal = $annualEnt + $carried;
         $annualTaken = $days('annual', ['approved']);
         $annualPending = $days('annual', ['pending_head', 'pending_hr']);
 
@@ -112,9 +191,11 @@ class Employee extends Model
             'tier' => $this->leaveTierLabel(),
             'annual' => [
                 'entitlement' => $annualEnt,
+                'carried_over' => $carried,
+                'total' => $annualTotal,
                 'taken' => $annualTaken,
                 'pending' => $annualPending,
-                'remaining' => max(0, $annualEnt - $annualTaken - $annualPending),
+                'remaining' => max(0, $annualTotal - $annualTaken - $annualPending),
             ],
             'sick' => [
                 'cap' => self::SICK_DAYS_PER_YEAR,

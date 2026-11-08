@@ -36,6 +36,8 @@ class HandleInertiaRequests extends Middleware
                 // Department rank ('employee' or 'head'), used to show/hide nav links
                 'rank' => $request->user()?->employee?->rank,
             ],
+            // Public holidays, so the browser can count working days the same way the server does.
+            'holidays' => fn () => $request->user() ? \App\Models\Holiday::lookup() : null,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

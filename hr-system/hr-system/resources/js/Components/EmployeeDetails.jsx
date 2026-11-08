@@ -47,7 +47,7 @@ export default function EmployeeDetails({ employee, show, onClose }) {
                         <>
                             <Row label="Years of service">{ls.years_of_service}</Row>
                             <Row label="Annual leave">
-                                {ls.annual.remaining}/{ls.annual.entitlement} left ({ls.tier})
+                                {ls.annual.remaining}/{ls.annual.total ?? ls.annual.entitlement} left ({ls.tier})
                             </Row>
                             <Row label="Sick leave">
                                 {ls.sick.remaining}/{ls.sick.cap} left

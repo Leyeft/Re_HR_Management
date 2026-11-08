@@ -1,6 +1,6 @@
 # Handoff — HR Management System
 
-_Last updated: 2026-11-07_
+_Last updated: 2026-11-08_
 
 ## Where we are
 
@@ -54,19 +54,51 @@ _Last updated: 2026-11-07_
 - **Department delete blocked** when it still has employees (castle message + server backstop);
   Departments list shows an employee count.
 
+## Progress — 2026-11-08
+
+- **Working days:** leave counts Mon–Fri only and skips **public holidays** (e.g. Mon–Wed = 3 days;
+  Mon–Wed with a Tuesday holiday = 2). `LeaveRequest::workingDaysBetween`, mirrored in
+  `Utils/leave.js` `workingDays` (holidays shared to the browser as the `holidays` Inertia prop).
+  Requests with no working days are refused.
+- **Public holidays:** HR/Admin add/remove them on the Leave Settings page (`holidays` table,
+  `App\Models\Holiday`). "Same date every year" makes it recurring (e.g. Christmas); otherwise it's
+  a one-off date (for holidays that move each year). Seeder adds New Year's Day + Christmas.
+- **Leave rollover (HR decides):** new **Leave Settings** page (`/settings/leave`, Admin/HR only) with an
+  on/off switch and a max-days cap (default off, max 5). When on, last year's unused annual days
+  (entitlement − approved annual) are added to this year, capped. Stored in a new `settings` table
+  (`App\Models\Setting`). Balance now returns `carried_over` and `total`.
+- **Last Head protection:** a department's only Head can't be demoted, moved or deleted while the
+  department still has other staff (form error / themed delete-dialog blocker + server check).
+  Fallback: if a department has **no** Head (e.g. brand new), leave goes straight to HR.
+- **#4 fixed:** Edit Employee now has a System Role field. Can't remove the last Admin/HR via a role
+  change; HR/Admin still can't also be Head.
+- **#7 fixed:** renaming a department to a name that already exists shows "Another department
+  already has this name" instead of a 500.
+- **#14 fixed:** app name is **Crewly** (`.env`, `.env.example`, fallbacks).
+- **#15 fixed:** tests now pass — **98 passed**. The 2026-11-07 migrations used MySQL-only
+  `ALTER … MODIFY`, which broke every test on SQLite; switched to Schema `->change()` (same result
+  on MySQL). Outdated tests rewritten; new suites: `LeaveFlowTest`, `LeaveRolloverTest`,
+  `EmployeeManagementTest`, `DepartmentTest`.
+- **#16 fixed:** `DemoSeeder` (called by `DatabaseSeeder`): 5 departments, Admin, HR, a Head per
+  department, staff, leave in every status. All passwords `password`. Re-runnable (skips existing
+  emails). Fresh demo DB: `php artisan migrate:fresh --seed`. Empty `DevSeeder` removed.
+
+- **Filters + exports:** All Leave now has filters (employee, department, status, type, date range —
+  a range keeps any leave that overlaps it). CSV + PDF export on **All Leave** and **Employees**, using
+  the page's current filters (shared queries: `LeaveRequest::scopeFilter`, `Employee::listQuery`).
+  **Download PDF** on an employee's profile = their full leave record. `ReportController`, PDF views in
+  `resources/views/reports/` (dompdf: `barryvdh/laravel-dompdf`). CSV has a UTF-8 BOM for Excel and
+  neutralises formula text (CSV injection). Admin/HR only. Tests: `ReportTest` (13).
+
 **Still open / to decide (next up):**
-- #4 edit can't change an employee's `role` after creation.
-- #7 department rename doesn't check for a duplicate name.
-- #14 `APP_NAME` still "Laravel".
-- #15 no automated tests; #16 no sample-data seeder.
-- Policy choices raised, not yet done: **calendar vs working days** for leave counts;
-  **"last head" protection** (a department can end up with no Head to approve); year-boundary leave
-  counts against the start year only.
+- App timezone is `UTC` (`config/app.php`), so report "Generated" times and approval times show UTC.
+- Year-boundary leave counts against the start year only.
 - Employee ID is 7 digits once a department id reaches 10 (still unique) — left as-is unless we
   decide to zero-pad to fixed width.
 
-**Run `php artisan migrate`** on any other machine to apply all six 2026-11-07 migrations
-(HR stage, department description, date hired, leave type, employee code, cancel).
+**Run `php artisan migrate`** on any other machine to apply the 2026-11-07 migrations
+(HR stage, department description, date hired, leave type, employee code, cancel) and the
+2026-11-08 `settings` and `holidays` tables.
 
 ## Local setup (done on this PC on 2026-11-03)
 
@@ -94,8 +126,7 @@ npm run dev              # second terminal, only while editing React files
 Department heads: `james@test.com` (Finance), `itsupport@test.com`, `housekeep@test.com`, `maintain@test.com`.
 Employees e.g. `bobby@test.com`. Most passwords are `password`; `itsupport`/`jackie` are `12345678`.
 
-**Tests:** `php artisan test` → 24 passed, 2 failed. Both failures (`ExampleTest`, `DepartmentTest`) are
-outdated tests expecting `/` to return 200; the app redirects to login, so they get 302.
+**Tests:** `php artisan test` → 111 passed — 32 unit tests (`tests/Unit`: allowance tiers, working days + holidays, settings, employee IDs) and 79 feature tests (SQLite in memory; no build or MySQL needed).
 
 ## Roles in the app
 

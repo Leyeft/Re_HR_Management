@@ -27,8 +27,10 @@ export default function LeaveBalance({ summary }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Stat
                     title="Annual leave"
-                    main={`${annual.remaining} / ${annual.entitlement}`}
-                    sub={`left · ${annual.taken} used · ${annual.pending} pending`}
+                    main={`${annual.remaining} / ${annual.total ?? annual.entitlement}`}
+                    sub={`left · ${annual.taken} used · ${annual.pending} pending${
+                        annual.carried_over ? ` · includes ${annual.carried_over} carried over` : ''
+                    }`}
                     tone="text-primary"
                 />
                 <Stat

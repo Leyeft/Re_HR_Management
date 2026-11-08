@@ -14,6 +14,7 @@ export default function Edit({ employee, departments }) {
         email: employee.user.email,
         date_of_birth: employee.date_of_birth ?? '',
         date_hired: employee.date_hired ?? '',
+        role: employee.user.role ?? 'employee',
         department_id: employee.department_id,
         rank: employee.rank,
     });
@@ -66,6 +67,20 @@ export default function Edit({ employee, departments }) {
                             </p>
                         )}
                         <InputError message={errors.date_hired} className="mt-1" />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="role" value="System Role — app access level" />
+                        <SelectInput id="role" className="mt-1 block w-full" value={data.role}
+                            onChange={(e) => setData('role', e.target.value)} required>
+                            <option value="employee">Employee — standard access</option>
+                            <option value="hr">HR — can view all leave</option>
+                            <option value="admin">Admin — full access</option>
+                        </SelectInput>
+                        <p className="mt-1 text-xs text-muted">
+                            Controls what this person can do across the whole app. HR and Admin can't also be a Head of Department.
+                        </p>
+                        <InputError message={errors.role} className="mt-1" />
                     </div>
 
                     <div>

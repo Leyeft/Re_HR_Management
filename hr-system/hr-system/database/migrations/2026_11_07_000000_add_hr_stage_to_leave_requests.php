@@ -23,22 +23,30 @@ return new class extends Migration
         });
 
         // Widen the enum, migrate old 'pending' rows to the new first stage, then narrow it.
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending','pending_head','pending_hr','approved','rejected') NOT NULL DEFAULT 'pending'");
-        DB::statement("UPDATE leave_requests SET status = 'pending_head' WHERE status = 'pending'");
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending_head','pending_hr','approved','rejected') NOT NULL DEFAULT 'pending_head'");
+        // Schema ->change() (not raw ALTER ... MODIFY) so this also runs on SQLite for tests.
+        $this->setStatuses(['pending', 'pending_head', 'pending_hr', 'approved', 'rejected'], 'pending');
+        DB::table('leave_requests')->where('status', 'pending')->update(['status' => 'pending_head']);
+        $this->setStatuses(['pending_head', 'pending_hr', 'approved', 'rejected'], 'pending_head');
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending','pending_head','pending_hr','approved','rejected') NOT NULL DEFAULT 'pending'");
-        DB::statement("UPDATE leave_requests SET status = 'pending' WHERE status IN ('pending_head','pending_hr')");
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending'");
+        $this->setStatuses(['pending', 'pending_head', 'pending_hr', 'approved', 'rejected'], 'pending');
+        DB::table('leave_requests')->whereIn('status', ['pending_head', 'pending_hr'])->update(['status' => 'pending']);
+        $this->setStatuses(['pending', 'approved', 'rejected'], 'pending');
 
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->dropConstrainedForeignId('head_approved_by');
             $table->dropColumn('head_approved_at');
             $table->dropConstrainedForeignId('hr_approved_by');
             $table->dropColumn('hr_approved_at');
+        });
+    }
+
+    private function setStatuses(array $statuses, string $default): void
+    {
+        Schema::table('leave_requests', function (Blueprint $table) use ($statuses, $default) {
+            $table->enum('status', $statuses)->default($default)->change();
         });
     }
 };

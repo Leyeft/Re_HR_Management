@@ -4,7 +4,8 @@ import LeaveTypeBadge from '@/Components/LeaveTypeBadge';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { workingDays } from '@/Utils/leave';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 
@@ -19,6 +20,7 @@ function Field({ label, children }) {
 
 export default function Show({ employee, leaves }) {
     const u = employee.user;
+    const { holidays } = usePage().props;
 
     return (
         <AuthenticatedLayout header={<PageHeader>Employee Profile</PageHeader>}>
@@ -37,10 +39,16 @@ export default function Show({ employee, leaves }) {
                             <p className="text-sm text-muted">{u?.email}</p>
                             <p className="mt-1 font-mono text-sm text-muted">ID: {employee.employee_code}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded bg-accent-tint px-2 py-1 text-xs font-medium text-accent-text">
                                 {employee.rank === 'head' ? 'Head of Department' : 'Employee'}
                             </span>
+                            <a
+                                href={route('reports.employee', employee.id)}
+                                className="inline-flex items-center rounded-md border border-line bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-content hover:bg-bg"
+                            >
+                                Download PDF
+                            </a>
                             <Link
                                 href={route('employees.edit', employee.id)}
                                 className="inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-primary-hover"
@@ -81,10 +89,7 @@ export default function Show({ employee, leaves }) {
                             </thead>
                             <tbody>
                                 {leaves.data.map((leave) => {
-                                    const days =
-                                        Math.round(
-                                            (new Date(leave.end_date) - new Date(leave.start_date)) / 86400000,
-                                        ) + 1;
+                                    const days = workingDays(leave.start_date, leave.end_date, holidays);
                                     return (
                                         <tr key={leave.id} className="border-t border-line align-top">
                                             <td className="p-3"><LeaveTypeBadge type={leave.type} /></td>

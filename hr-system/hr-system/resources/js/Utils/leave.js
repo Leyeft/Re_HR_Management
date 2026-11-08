@@ -9,7 +9,7 @@ export function tierFromYears(years) {
     if (years < 1) return { label: 'Under 1 year', days: 3 };
     if (years <= 7) return { label: '1–7 years', days: 10 };
     if (years <= 15) return { label: '8–15 years', days: 15 };
-    return { label: '15+ years', days: 20 };
+    return { label: '16+ years', days: 20 };
 }
 
 // Whole years between a YYYY-MM-DD date and today.
@@ -24,11 +24,22 @@ export function yearsSince(dateStr) {
     return Math.max(0, years);
 }
 
-// Inclusive day count between two YYYY-MM-DD dates (null if invalid).
-export function inclusiveDays(start, end) {
+// Working days between two YYYY-MM-DD dates, inclusive (null if invalid): Mon–Fri,
+// skipping public holidays. `holidays` is the shared `holidays` prop
+// ({ dates: {'2026-04-09': true}, yearly: {'12-25': true} }).
+// Mirrors App\Models\LeaveRequest::workingDaysBetween.
+export function workingDays(start, end, holidays = null) {
     if (!start || !end) return null;
-    const a = new Date(start);
-    const b = new Date(end);
+    // Parse as UTC so time zones / DST can't shift the weekday.
+    const a = new Date(start + 'T00:00:00Z');
+    const b = new Date(end + 'T00:00:00Z');
     if (isNaN(a.getTime()) || isNaN(b.getTime()) || b < a) return null;
-    return Math.round((b - a) / 86400000) + 1;
+    let count = 0;
+    for (const d = new Date(a); d <= b; d.setUTCDate(d.getUTCDate() + 1)) {
+        const day = d.getUTCDay();
+        const iso = d.toISOString().slice(0, 10);
+        const isHoliday = !!(holidays?.dates?.[iso] || holidays?.yearly?.[iso.slice(5)]);
+        if (day !== 0 && day !== 6 && !isHoliday) count++;
+    }
+    return count;
 }

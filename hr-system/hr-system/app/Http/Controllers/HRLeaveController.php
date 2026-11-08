@@ -3,20 +3,25 @@
 namespace App\Http\Controllers;
 
 use Inertia\Inertia;
+use App\Models\Department;
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 
 class HRLeaveController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeHr();
 
+        $filters = $request->validate(self::filterRules());
+
         $leaves = LeaveRequest::with(['employee.user', 'employee.department', 'headApprover', 'hrApprover'])
+            ->filter($filters)
             // Requests waiting on HR float to the top, then newest first.
             ->orderByRaw("status = 'pending_hr' DESC")
             ->latest()
             ->paginate(10)
+            ->withQueryString()
             ->through(function ($leave) {
                 if ($leave->employee) {
                     $leave->employee->setAttribute('leave_summary', $leave->employee->leaveSummary());
@@ -24,7 +29,24 @@ class HRLeaveController extends Controller
                 return $leave;
             });
 
-        return Inertia::render('HR/Leave/Index', compact('leaves'));
+        return Inertia::render('HR/Leave/Index', [
+            'leaves' => $leaves,
+            'filters' => (object) $filters,
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    // Validation for the All Leave filters (also used by the leave report export).
+    public static function filterRules(): array
+    {
+        return [
+            'search' => 'nullable|string|max:100',
+            'department' => 'nullable|integer',
+            'status' => 'nullable|in:pending_head,pending_hr,approved,rejected,cancelled',
+            'type' => 'nullable|in:annual,sick,professional',
+            'from' => 'nullable|date',
+            'to' => 'nullable|date|after_or_equal:from',
+        ];
     }
 
     public function approve(LeaveRequest $leave)

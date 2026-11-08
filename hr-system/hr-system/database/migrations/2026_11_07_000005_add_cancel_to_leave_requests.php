@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending_head','pending_hr','approved','rejected','cancelled') NOT NULL DEFAULT 'pending_head'");
+        $this->setStatuses(['pending_head', 'pending_hr', 'approved', 'rejected', 'cancelled']);
 
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->text('cancellation_reason')->nullable()->after('rejection_reason');
@@ -25,7 +25,15 @@ return new class extends Migration
             $table->dropColumn('cancellation_reason');
         });
 
-        DB::statement("UPDATE leave_requests SET status = 'rejected' WHERE status = 'cancelled'");
-        DB::statement("ALTER TABLE leave_requests MODIFY status ENUM('pending_head','pending_hr','approved','rejected') NOT NULL DEFAULT 'pending_head'");
+        DB::table('leave_requests')->where('status', 'cancelled')->update(['status' => 'rejected']);
+        $this->setStatuses(['pending_head', 'pending_hr', 'approved', 'rejected']);
+    }
+
+    // Schema ->change() (not raw ALTER ... MODIFY) so this also runs on SQLite for tests.
+    private function setStatuses(array $statuses): void
+    {
+        Schema::table('leave_requests', function (Blueprint $table) use ($statuses) {
+            $table->enum('status', $statuses)->default('pending_head')->change();
+        });
     }
 };

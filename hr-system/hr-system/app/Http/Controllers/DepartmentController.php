@@ -51,9 +51,12 @@ class DepartmentController extends Controller
     // --- U (Update - Save) ---
     public function update(Request $request, Department $department)
 {
+    // Name must stay unique (ignoring this department's own current name).
     $request->validate([
-        'name' => 'required|string|max:255',
+        'name' => 'required|string|max:255|unique:departments,name,' . $department->id,
         'description' => 'nullable|string',
+    ], [
+        'name.unique' => 'Another department already has this name.',
     ]);
 
     $department->update($request->only('name', 'description'));

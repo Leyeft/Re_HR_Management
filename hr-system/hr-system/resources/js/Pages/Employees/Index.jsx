@@ -1,5 +1,6 @@
 import DangerButton from '@/Components/DangerButton';
 import EmployeeDetails from '@/Components/EmployeeDetails';
+import ExportButtons from '@/Components/ExportButtons';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
@@ -27,6 +28,12 @@ const PROTECTED = {
         body: '’Tis the final HR of the kingdom! Slay them, and who shall tend the wounded spirits of the payroll-stricken? Appoint another healer first.',
         heir: 'Appoint a healer',
     },
+    head: {
+        icon: '⚔️',
+        title: 'A castle without a lord falls by nightfall!',
+        body: 'This is the only Head of their department. Strike them down and every leave request in that castle shall wander the halls forever, with no lord to grant it. Crown a new Head for the department first.',
+        heir: 'Find a new Head',
+    },
 };
 
 export default function Index({ employees, departments, filters, roleCounts }) {
@@ -51,11 +58,18 @@ export default function Index({ employees, departments, filters, roleCounts }) {
 
     // If deleting this person would remove the last Admin / HR, show a blocker instead.
     const deletingRole = confirmingEmployee?.user?.role;
+    // Same for the only Head of a department that still has staff.
     const protectedInfo =
         (deletingRole === 'admin' && (roleCounts?.admin ?? 0) <= 1) ||
         (deletingRole === 'hr' && (roleCounts?.hr ?? 0) <= 1)
             ? PROTECTED[deletingRole]
-            : null;
+            : confirmingEmployee?.is_last_head
+              ? PROTECTED.head
+              : null;
+    const heirHref =
+        protectedInfo === PROTECTED.head
+            ? route('employees.index', { department: confirmingEmployee.department_id })
+            : route('employees.create');
 
     const confirmDelete = () => {
         if (confirmText !== CONFIRM_WORD || !confirmingEmployee) {
@@ -144,12 +158,15 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                     <div className="rounded-lg bg-white p-6 shadow">
                         <div className="mb-6 flex items-center justify-between">
                             <h3 className="text-lg font-medium text-gray-700">Employee List</h3>
-                            <Link
-                                href={route('employees.create')}
-                                className="rounded bg-primary px-4 py-2 text-white hover:bg-primary-hover"
-                            >
-                                + Add Employee
-                            </Link>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <ExportButtons routeName="reports.employees" params={filters} />
+                                <Link
+                                    href={route('employees.create')}
+                                    className="rounded bg-primary px-4 py-2 text-white hover:bg-primary-hover"
+                                >
+                                    + Add Employee
+                                </Link>
+                            </div>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -192,7 +209,7 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                                 {employee.leave_summary ? (
                                                     <span className="text-sm">
                                                         <span className="font-medium text-content">
-                                                            {employee.leave_summary.annual.remaining}/{employee.leave_summary.annual.entitlement}
+                                                            {employee.leave_summary.annual.remaining}/{employee.leave_summary.annual.total ?? employee.leave_summary.annual.entitlement}
                                                         </span>
                                                         <span className="ml-1 text-xs text-muted">
                                                             ({employee.leave_summary.tier})
@@ -256,7 +273,8 @@ export default function Index({ employees, departments, filters, roleCounts }) {
                                 Lower my sword
                             </SecondaryButton>
                             <Link
-                                href={route('employees.create')}
+                                href={heirHref}
+                                onClick={closeDeleteModal}
                                 className="inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-primary-hover"
                             >
                                 {protectedInfo.heir}

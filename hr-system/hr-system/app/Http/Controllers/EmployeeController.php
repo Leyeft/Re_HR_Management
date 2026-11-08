@@ -16,36 +16,14 @@ class EmployeeController extends Controller
      * ======================= */
   public function index(Request $request)
 {
-    $sort = $request->get('sort', 'asc');
-
-    $employees = Employee::join('users', 'employees.user_id', '=', 'users.id')
-        ->with(['user', 'department'])
-
-        // Search
-        ->when($request->search, function ($query) use ($request) {
-            $query->where(function ($q) use ($request) {
-                $q->where('users.name', 'like', '%' . $request->search . '%')
-                  ->orWhere('users.email', 'like', '%' . $request->search . '%');
-            });
-        })
-
-        // Department filter
-        ->when($request->department !== null && $request->department !== '', function ($q) use ($request) {
-            $q->where('employees.department_id', $request->department);
-        })
-
-        // Rank filter
-        ->when($request->rank !== null && $request->rank !== '', function ($q) use ($request) {
-            $q->where('employees.rank', $request->rank);
-        })
-
-        ->orderBy('users.name', $sort)
-        ->select('employees.*')
+    $employees = Employee::listQuery($request->only('search', 'department', 'rank', 'sort'))
         ->paginate(10)
         ->withQueryString()
         ->through(function ($employee) {
             // Attach this year's leave entitlement/balance for the table.
             $employee->setAttribute('leave_summary', $employee->leaveSummary());
+            // Used by the delete dialog to protect a department's only Head.
+            $employee->setAttribute('is_last_head', $employee->isLastHeadWithStaff());
             return $employee;
         });
 
@@ -160,16 +138,49 @@ class EmployeeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $employee->user_id,
+            'role' => 'required|in:employee,hr,admin',
             'department_id' => 'required|exists:departments,id',
             'rank' => 'required|in:employee,head',
             'date_of_birth' => 'required|date',
             'date_hired' => 'required|date',
         ]);
 
+        $user = $employee->user;
+
+        // Same rule as on create: HR/Admin accounts can't also be a Head.
+        if ($request->role !== 'employee' && $request->rank === 'head') {
+            return back()->withErrors([
+                'rank' => 'Only employees can be Head of Department.',
+            ])->withInput();
+        }
+
+        // Don't let a role change remove the last Admin or the last HR.
+        foreach (['admin' => 'Admin', 'hr' => 'HR'] as $role => $label) {
+            if ($user->role === $role && $request->role !== $role
+                && User::where('role', $role)->count() <= 1) {
+                return back()->withErrors([
+                    'role' => "This is the only {$label} account. Give another person the {$label} role first.",
+                ])->withInput();
+            }
+        }
+
+        // Don't leave a department without a Head while it still has staff
+        // (their leave requests would have nobody to approve them).
+        $stopsBeingHead = $request->rank !== 'head'
+            || (int) $request->department_id !== $employee->department_id;
+
+        if ($stopsBeingHead && $employee->isLastHeadWithStaff()) {
+            return back()->withErrors([
+                'rank' => 'This is the only Head of ' . $employee->department->name
+                    . '. Make someone else in that department Head first.',
+            ])->withInput();
+        }
+
         // Update user info
-        $employee->user->update([
+        $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'role' => $request->role,
         ]);
 
         // Update employee info
@@ -200,6 +211,13 @@ class EmployeeController extends Controller
         // Never leave the system without an admin to run it.
         if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
             return back()->with('error', '👑 "The crown cannot be left upon an empty throne!" Thou wouldst dethrone the last admin of this realm? Crown a worthy heir first, lest the castle gates lock forever (and nobody gets paid on Friday).');
+        }
+
+        // Never leave a department with staff but no Head to approve their leave.
+        if ($employee->isLastHeadWithStaff()) {
+            return back()->with('error', '⚔️ "A castle without a lord falls by nightfall!" This is the only Head of '
+                . $employee->department->name . '. Crown a new Head for that department first, '
+                . 'or their leave requests shall wander the halls forever.');
         }
 
         // This will also delete the employee row due to cascade.

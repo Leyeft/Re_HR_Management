@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Inertia\Inertia;
+use App\Models\Employee;
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -66,7 +67,15 @@ class LeaveRequestController extends Controller
         ]);
 
         $type = $request->input('type');
-        $requestedDays = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
+        // Leave is counted in working days — weekends and public holidays don't use up any allowance.
+        $requestedDays = LeaveRequest::workingDaysBetween($request->start_date, $request->end_date);
+
+        if ($requestedDays === 0) {
+            return back()->with('error',
+                'Those dates are all weekends or public holidays, so there are no working days to request.'
+            )->withInput();
+        }
+
         $summary = $employee->leaveSummary((int) Carbon::parse($request->start_date)->year);
 
         // Block dates that overlap an existing live request.
@@ -85,26 +94,31 @@ class LeaveRequestController extends Controller
         // Enforce the relevant allowance (professional has none).
         if ($type === 'annual' && $requestedDays > $summary['annual']['remaining']) {
             return back()->with('error', sprintf(
-                'This annual leave is %d day(s), but you only have %d day(s) left this year '
-                . '(entitlement %d, used %d, pending %d). Please visit the HR office for more details, or if you need help.',
-                $requestedDays, $summary['annual']['remaining'], $summary['annual']['entitlement'],
+                'This annual leave is %d working day(s), but you only have %d day(s) left this year '
+                . '(allowance %d, used %d, pending %d). Please visit the HR office for more details, or if you need help.',
+                $requestedDays, $summary['annual']['remaining'], $summary['annual']['total'],
                 $summary['annual']['taken'], $summary['annual']['pending']
             ))->withInput();
         }
 
         if ($type === 'sick' && $requestedDays > $summary['sick']['remaining']) {
             return back()->with('error', sprintf(
-                'This sick leave is %d day(s), but you only have %d of your %d sick days left this year. '
+                'This sick leave is %d working day(s), but you only have %d of your %d sick days left this year. '
                 . 'Please visit the HR office for more details, or if you need help.',
                 $requestedDays, $summary['sick']['remaining'], $summary['sick']['cap']
             ))->withInput();
         }
 
         // Status: sick is recorded immediately; a Head can't approve their own
-        // leave, so theirs goes straight to HR; everyone else starts at the Head.
+        // leave, so theirs goes straight to HR; a department with no Head yet
+        // also goes straight to HR; everyone else starts at the Head.
+        $departmentHasHead = Employee::where('department_id', $employee->department_id)
+            ->where('rank', 'head')
+            ->exists();
+
         if ($type === 'sick') {
             $status = 'approved';
-        } elseif ($employee->rank === 'head') {
+        } elseif ($employee->rank === 'head' || ! $departmentHasHead) {
             $status = 'pending_hr';
         } else {
             $status = 'pending_head';

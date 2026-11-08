@@ -17,6 +17,7 @@ function navLinks(user, rank) {
         { label: 'Leave Approvals', route: 'leave.approvals', active: 'leave.approvals', show: rank === 'head' },
         { label: 'Leave History', route: 'head.leave.history', active: 'head.leave.history', show: rank === 'head' },
         { label: 'All Leave', route: 'hr.leave.index', active: 'hr.leave.index', show: user.role === 'hr' || user.role === 'admin' },
+        { label: 'Leave Settings', route: 'settings.leave', active: 'settings.leave', show: manages },
     ].filter((link) => link.show !== false);
 }
 
