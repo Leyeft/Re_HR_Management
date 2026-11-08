@@ -10,7 +10,7 @@ _Last updated: 2026-11-08_
 ## Where we are
 
 - **Repo:** `Leyeft/Re_HR_Management` (our own repo — **do not work in the GitHub Classroom repo**).
-- **Branch:** `react-frontend` — all work happens here. `main` still has the old Blade version.
+- **Branch:** `main` — the React SPA + REST API version (fast-forwarded from `react-frontend` on 2026-11-09; that branch is identical and can be deleted). The old Blade version is in the history before commit `968c3b2`.
 - **App:** Laravel 12 + React (via Inertia) + MySQL. The Laravel app is in `hr-system/hr-system/`.
 - **Status:** React conversion complete. Most bugs below are now fixed, plus new features added
   (see **Progress — 2026-11-07**). App builds and runs locally.
