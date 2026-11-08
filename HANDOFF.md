@@ -233,8 +233,8 @@ Most fixes are code-only. Planned database change (as a **new migration**, not b
 | 1 | REST API next to the current app: Sanctum SPA cookie auth, `role:`/`head` middleware, `{code,message,errors}` JSON errors, Resource classes, FormRequests, services (`LeaveService`, `EmployeeService`), 34 API tests | **Done** (`c9429c4`, `c8f75d4`, `730a0de`) |
 | 2 | SPA shell at `/app`: React Router, Redux Toolkit store (auth, toasts), Axios client (CSRF, 419 retry, error shape), private routes, toasts, layout, SPA login | **Done** (`f8a3521`, `a2d731d`) |
 | 3 | All pages moved to the SPA: dashboard (charts), profile, passwords, departments (modal CRUD, client-side search), employees (server-side filters, profile, form), my leave, request leave, approvals, dept history, all leave, leave settings | **Done** (`85facc2`…) |
-| 4 | Database gaps: department hierarchy (self-referencing `parent_id`), employee skills (pivot), soft deletes, factories | Next |
-| 5 | Notifications (leave submitted/approved/rejected, in-app + email), activity/audit log + last login, avatar upload | |
+| 4 | Department hierarchy (self-referencing `parent_id`, loop-proof), skills + `employee_skill` pivot with level, soft deletes + restore (users, employees, departments), factories (Department, Employee, Skill, LeaveRequest) | **Done** (`798b7f7` + SPA) |
+| 5 | Notifications (leave submitted/approved/rejected, in-app + email), activity/audit log + last login, avatar upload | Next |
 | 6 | Remove Inertia + web controllers; convert old feature tests to API tests | |
 | 7 | Docs: Postman collection, README (setup, endpoints, roles table, ERD, deployed URL); deploy online | |
 
