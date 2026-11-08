@@ -4604,7 +4604,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"date\": \"2026-01-01\",\n      \"name\": \"New Year's Day\",\n      \"recurring\": true\n    },\n    {\n      \"id\": 2,\n      \"date\": \"2026-12-25\",\n      \"name\": \"Christmas Day\",\n      \"recurring\": true\n    }\n  ]\n}"
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"date\": \"2026-01-01\",\n      \"name\": \"New Year's Day\"\n    },\n    {\n      \"id\": 2,\n      \"date\": \"2026-12-25\",\n      \"name\": \"Christmas Day\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -4632,10 +4632,10 @@
                 "holidays"
               ]
             },
-            "description": "`recurring: true` = same date every year.\n\nUse an **HR** token (Auth → Get token as HR).",
+            "description": "One date. HR uploads each year's list (see Import).\n\nUse an **HR** token (Auth → Get token as HR).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"date\": \"{{holidayDate}}\",\n  \"name\": \"Company anniversary\",\n  \"recurring\": true\n}",
+              "raw": "{\n  \"date\": \"{{holidayDate}}\",\n  \"name\": \"Company anniversary\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4668,10 +4668,10 @@
                     "holidays"
                   ]
                 },
-                "description": "`recurring: true` = same date every year.\n\nUse an **HR** token (Auth → Get token as HR).",
+                "description": "One date. HR uploads each year's list (see Import).\n\nUse an **HR** token (Auth → Get token as HR).",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"date\": \"2027-01-08\",\n  \"name\": \"Company anniversary\",\n  \"recurring\": true\n}",
+                  "raw": "{\n  \"date\": \"2027-01-08\",\n  \"name\": \"Company anniversary\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4688,7 +4688,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"id\": 3,\n    \"date\": \"2027-01-08\",\n    \"name\": \"Company anniversary\",\n    \"recurring\": true\n  },\n  \"message\": \"Holiday added.\"\n}"
+              "body": "{\n  \"data\": {\n    \"id\": 3,\n    \"date\": \"2027-01-08\",\n    \"name\": \"Company anniversary\"\n  },\n  \"message\": \"Holiday added.\"\n}"
             }
           ],
           "event": [
@@ -4705,6 +4705,47 @@
               }
             }
           ]
+        },
+        {
+          "name": "Import holidays (Excel / CSV)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/holidays/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "holidays",
+                "import"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "dry_run",
+                  "value": "1",
+                  "type": "text",
+                  "description": "1 = preview only (nothing saved); 0 = import"
+                }
+              ]
+            },
+            "description": "Upload a .xlsx or .csv with the headings **date, name** (template: `GET /templates/holidays.xlsx` while signed in). Each row is reported as new / replace / unchanged / duplicate / error. With `dry_run=0`, new dates are added and dates already saved get the file's name; other saved dates are kept.\n\nUse an **HR** token (Auth → Get token as HR)."
+          },
+          "response": []
         },
         {
           "name": "Remove public holiday",
@@ -4765,6 +4806,30 @@
               "body": "{\n  \"message\": \"Holiday removed.\"\n}"
             }
           ]
+        },
+        {
+          "name": "Clear all holidays",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/holidays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "holidays"
+              ]
+            },
+            "description": "Deletes every public holiday (e.g. before uploading a new year's list). Logged as one activity entry.\n\nUse an **HR** token (Auth → Get token as HR)."
+          },
+          "response": []
         }
       ]
     },

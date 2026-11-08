@@ -1,6 +1,9 @@
+import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
+import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,16 +11,14 @@ import ImportHolidaysModal from '../../components/ImportHolidaysModal';
 import Page, { Card, LoadError } from '../../components/Page';
 import { PageLoader } from '../../components/Spinner';
 import useApiForm from '../../hooks/useApiForm';
-import { addHoliday, fetchHolidays, removeHoliday } from '../../store/holidaysSlice';
+import { addHoliday, clearAllHolidays, fetchHolidays, removeHoliday } from '../../store/holidaysSlice';
 import { fetchLeaveSettings, saveLeaveSettings } from '../../store/settingsSlice';
 import { toastError, toastSuccess } from '../../store/toastSlice';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// "25 Dec" for yearly holidays, "9 Apr 2026" for one-off dates.
+// "Mon 13 Apr" (the year is shown as the group heading).
 function formatHoliday(h) {
-    const [y, m, d] = h.date.split('-').map(Number);
-    return h.recurring ? `${d} ${MONTHS[m - 1]}` : `${d} ${MONTHS[m - 1]} ${y}`;
+    const date = new Date(`${h.date}T00:00:00`);
+    return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 // /settings/leave — rollover policy and public holidays (HR/Admin).
@@ -96,10 +97,17 @@ function RolloverForm({ settings }) {
 function Holidays() {
     const dispatch = useDispatch();
     const { items, status } = useSelector((state) => state.holidays);
-    const empty = { date: '', name: '', recurring: false };
+    const empty = { date: '', name: '' };
     const form = useApiForm(empty);
     const [removing, setRemoving] = useState(null);
     const [importing, setImporting] = useState(false);
+    const [clearing, setClearing] = useState(false);
+
+    // Holidays grouped by year, e.g. { 2026: [...], 2027: [...] }
+    const byYear = items.reduce((groups, h) => {
+        (groups[h.date.slice(0, 4)] ??= []).push(h);
+        return groups;
+    }, {});
 
     const add = (e) => {
         e.preventDefault();
@@ -126,7 +134,7 @@ function Holidays() {
     return (
         <Card title="Public holidays" description="Leave never counts weekends or these days. Example: if Tuesday is a holiday, leave from Monday to Wednesday is 2 days.">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-accent-tint px-4 py-3">
-                <p className="text-sm text-accent-text">Have a list of holidays? Add them all at once from a spreadsheet.</p>
+                <p className="text-sm text-accent-text">Upload each year's holidays from a spreadsheet. Dates already saved get the name from your file.</p>
                 <button
                     type="button"
                     onClick={() => setImporting(true)}
@@ -147,10 +155,6 @@ function Holidays() {
                     <TextInput id="holiday_name" className="mt-1 block w-full" value={form.data.name} placeholder="e.g. Christmas Day" maxLength={100} onChange={form.field('name')} />
                 </div>
                 <PrimaryButton disabled={form.processing}>{form.processing ? 'Adding…' : 'Add'}</PrimaryButton>
-                <label className="flex items-center gap-2 text-sm text-content sm:col-span-3">
-                    <input type="checkbox" className="rounded border-line text-accent shadow-sm focus:ring-accent" checked={form.data.recurring} onChange={form.field('recurring')} />
-                    Same date every year
-                </label>
                 <div className="sm:col-span-3">
                     <InputError message={form.errors.date} />
                     <InputError message={form.errors.name} />
@@ -161,24 +165,77 @@ function Holidays() {
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading holidays…" />
                 ) : items.length === 0 ? (
-                    <p className="rounded-md bg-bg px-4 py-3 text-sm text-muted">No holidays added yet.</p>
+                    <p className="rounded-md bg-bg px-4 py-3 text-sm text-muted">No holidays yet. Add one above or import a list.</p>
                 ) : (
-                    <ul className="divide-y divide-line rounded-md border border-line">
-                        {items.map((h) => (
-                            <li key={h.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
-                                <div>
-                                    <span className="font-medium text-content">{h.name}</span>
-                                    <span className="ms-2 text-muted">{formatHoliday(h)}</span>
-                                    {h.recurring && <span className="ms-2 rounded bg-accent-tint px-2 py-0.5 text-xs font-medium text-accent-text">every year</span>}
-                                </div>
-                                <button type="button" onClick={() => remove(h)} disabled={removing === h.id} className="text-xs font-medium text-danger hover:underline disabled:opacity-50">
-                                    {removing === h.id ? 'Removing…' : 'Remove'}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                    <>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <p className="text-sm text-muted">{items.length} holiday{items.length === 1 ? '' : 's'}</p>
+                            <button type="button" onClick={() => setClearing(true)} className="rounded-md border border-danger px-3 py-1.5 text-sm font-medium text-danger hover:bg-danger-bg">
+                                Clear all
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            {Object.entries(byYear).map(([year, list]) => (
+                                <section key={year}>
+                                    <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                                        {year} · {list.length}
+                                    </h4>
+                                    <ul className="divide-y divide-line rounded-md border border-line">
+                                        {list.map((h) => (
+                                            <li key={h.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
+                                                <div>
+                                                    <span className="inline-block w-28 text-muted">{formatHoliday(h)}</span>
+                                                    <span className="font-medium text-content">{h.name}</span>
+                                                </div>
+                                                <button type="button" onClick={() => remove(h)} disabled={removing === h.id} className="text-xs font-medium text-danger hover:underline disabled:opacity-50">
+                                                    {removing === h.id ? 'Removing…' : 'Remove'}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
+
+            <ClearHolidaysModal show={clearing} count={items.length} onClose={() => setClearing(false)} />
         </Card>
+    );
+}
+
+// "Clear all" confirmation — removes every holiday so a new year's list can be uploaded.
+function ClearHolidaysModal({ show, count, onClose }) {
+    const dispatch = useDispatch();
+    const [busy, setBusy] = useState(false);
+
+    const confirm = async () => {
+        setBusy(true);
+        try {
+            const res = await dispatch(clearAllHolidays()).unwrap();
+            dispatch(toastSuccess(res.message));
+            onClose();
+        } catch (e) {
+            dispatch(toastError(e.message));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="md">
+            <div className="p-6">
+                <h2 className="text-lg font-medium text-content">Remove all {count} holidays?</h2>
+                <p className="mt-2 text-sm text-muted">
+                    Every public holiday is deleted, for all years. Use this to start fresh before importing a new list.
+                    Leave that was already requested keeps its day count. This can't be undone.
+                </p>
+                <div className="mt-6 flex justify-end gap-3">
+                    <SecondaryButton type="button" onClick={onClose}>Cancel</SecondaryButton>
+                    <DangerButton type="button" onClick={confirm} disabled={busy}>{busy ? 'Removing…' : 'Remove all'}</DangerButton>
+                </div>
+            </div>
+        </Modal>
     );
 }

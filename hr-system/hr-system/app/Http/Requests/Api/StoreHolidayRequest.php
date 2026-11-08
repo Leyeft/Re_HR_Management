@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Add a public holiday (recurring = same date every year).
+ * Add a public holiday (one date).
  */
 class StoreHolidayRequest extends FormRequest
 {
@@ -20,7 +20,6 @@ class StoreHolidayRequest extends FormRequest
         return [
             'date' => ['required', 'date', 'unique:holidays,date'],
             'name' => ['required', 'string', 'max:100'],
-            'recurring' => ['boolean'],
         ];
     }
 

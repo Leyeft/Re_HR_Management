@@ -19,10 +19,10 @@ class HolidayTemplateController extends Controller
     {
         $year = now()->addYear()->year;
         $examples = [
-            ["{$year}-01-01", "New Year's Day", 'yes'],
-            ["{$year}-04-13", 'Songkran Festival', 'yes'],
-            ["{$year}-06-15", 'Company anniversary', 'no'],
-            ["{$year}-12-25", 'Christmas Day', 'yes'],
+            ["{$year}-01-01", "New Year's Day"],
+            ["{$year}-04-13", 'Songkran Festival'],
+            ["{$year}-06-15", 'Company anniversary'],
+            ["{$year}-12-25", 'Christmas Day'],
         ];
 
         $path = tempnam(sys_get_temp_dir(), 'holidays') . ".{$format}";
@@ -31,14 +31,13 @@ class HolidayTemplateController extends Controller
             $options = new XlsxOptions();
             $options->setColumnWidth(14, 1);
             $options->setColumnWidth(32, 2);
-            $options->setColumnWidth(12, 3);
 
             $writer = new XlsxWriter($options);
             $writer->openToFile($path);
             $writer->getCurrentSheet()->setName('Holidays');
 
             $heading = (new Style())->withFontBold(true)->withFontColor('FFFFFF')->withBackgroundColor('12305A');
-            $writer->addRow(Row::fromValuesWithStyle(['date', 'name', 'recurring'], $heading));
+            $writer->addRow(Row::fromValuesWithStyle(['date', 'name'], $heading));
             foreach ($examples as $row) {
                 $writer->addRow(Row::fromValues($row));
             }
@@ -50,10 +49,11 @@ class HolidayTemplateController extends Controller
                 [''],
                 ['date', 'The holiday date: 2026-12-25 or 25/12/2026 (day/month/year), or an Excel date.'],
                 ['name', 'The holiday name, e.g. Christmas Day (max 100 characters).'],
-                ['recurring', 'yes = same date every year; no (or blank) = this date only.'],
                 [''],
                 ['Keep the heading row. Replace the example rows with your own. One holiday per row.'],
-                ['Dates that already exist are skipped. You will see a preview before anything is saved.'],
+                ['Upload each year\'s list. A date that is already saved gets the name from your file;'],
+                ['other saved dates are kept. You will see a preview before anything is saved.'],
+                ['To start a fresh year, use "Clear all" on the Leave settings page first.'],
             ] as $line) {
                 $writer->addRow(Row::fromValues($line));
             }
@@ -61,7 +61,7 @@ class HolidayTemplateController extends Controller
         } else {
             $writer = new CsvWriter();
             $writer->openToFile($path);
-            $writer->addRow(Row::fromValues(['date', 'name', 'recurring']));
+            $writer->addRow(Row::fromValues(['date', 'name']));
             foreach ($examples as $row) {
                 $writer->addRow(Row::fromValues($row));
             }

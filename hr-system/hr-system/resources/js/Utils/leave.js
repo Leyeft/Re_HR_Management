@@ -25,8 +25,8 @@ export function yearsSince(dateStr) {
 }
 
 // Working days between two YYYY-MM-DD dates, inclusive (null if invalid): Mon–Fri,
-// skipping public holidays. `holidays` is the shared `holidays` prop
-// ({ dates: {'2026-04-09': true}, yearly: {'12-25': true} }).
+// skipping public holidays. `holidays` = { dates: { '2026-04-13': true, … } }
+// (from selectHolidayLookup in the holidays slice).
 // Mirrors App\Models\LeaveRequest::workingDaysBetween.
 export function workingDays(start, end, holidays = null) {
     if (!start || !end) return null;
@@ -38,7 +38,7 @@ export function workingDays(start, end, holidays = null) {
     for (const d = new Date(a); d <= b; d.setUTCDate(d.getUTCDate() + 1)) {
         const day = d.getUTCDay();
         const iso = d.toISOString().slice(0, 10);
-        const isHoliday = !!(holidays?.dates?.[iso] || holidays?.yearly?.[iso.slice(5)]);
+        const isHoliday = !!holidays?.dates?.[iso];
         if (day !== 0 && day !== 6 && !isHoliday) count++;
     }
     return count;

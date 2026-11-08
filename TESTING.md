@@ -2,7 +2,7 @@
 
 _Last updated: 2026-11-09_
 
-Crewly is tested at four levels: unit, integration, system and security. All **164 automated tests pass**: 32 unit tests and 132 integration (API) tests. System tests are run by hand in the browser.
+Crewly is tested at four levels: unit, integration, system and security. All **169 automated tests pass**: 31 unit tests and 138 integration (API) tests. System tests are run by hand in the browser.
 
 ```
 cd hr-system\hr-system
@@ -34,8 +34,8 @@ Load and stress testing is out of scope, because the system serves one company's
 
 | Level | What is tested | How | Count |
 | --- | --- | --- | --- |
-| Unit | Single business rules (allowance tiers, working days, settings, employee IDs) | PHPUnit, automated | 32 |
-| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 132 |
+| Unit | Single business rules (allowance tiers, working days, settings, employee IDs) | PHPUnit, automated | 31 |
+| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 138 |
 | System | Complete user tasks in the real app, from login to result | Manual, in the browser | 21 cases |
 | Security | Who can see and do what; protection of key accounts; safe sign-in, uploads and exports | Part of the integration tests, plus manual checks | 31 |
 
@@ -65,12 +65,12 @@ The automated suite runs in about 5 seconds, so it is re-run after every change.
 
 ## 4.4.4.1 Unit Tests
 
-All 32 unit tests pass. Each one checks a single business rule directly, without going through any page. They live in `hr-system/hr-system/tests/Unit/`.
+All 31 unit tests pass. Each one checks a single business rule directly, without going through any page. They live in `hr-system/hr-system/tests/Unit/`.
 
 | Test file | Rule under test | Example cases | Tests | Result |
 | --- | --- | --- | --- | --- |
 | `LeaveEntitlementTest` | Annual allowance by years of service: under 1 year = 3 days, 1–7 = 10, 8–15 = 15, 16+ = 20 | Exactly 1, 7, 8, 15 and 16 years; one day short of a year; no hire date; future hire date | 11 | Pass |
-| `WorkingDaysTest` | Leave counts Monday to Friday only and skips public holidays | Mon–Wed = 3; Fri–Mon = 2; Sat–Sun = 0; Mon–Wed with a Tuesday holiday = 2; a yearly holiday applies every year; a weekend holiday isn't subtracted twice | 12 | Pass |
+| `WorkingDaysTest` | Leave counts Monday to Friday only and skips public holidays | Mon–Wed = 3; Fri–Mon = 2; Sat–Sun = 0; Mon–Wed with a Tuesday holiday = 2; a holiday only applies to its own date; a weekend holiday isn't subtracted twice | 11 | Pass |
 | `SettingTest` | Rollover settings HR can change | Defaults (off, max 5); saved values read back; saving twice updates instead of duplicating; a negative max becomes 0 | 5 | Pass |
 | `EmployeeCodeTest` | Employee ID = department ID × 100000 + running number | First ID in department 1 is 100001; each department counts separately; a deleted employee's number isn't reused | 4 | Pass |
 
@@ -117,7 +117,7 @@ Every defect found during review and testing is logged with an ID, its severity 
 
 ## 4.4.4.2 Integration Tests
 
-All 132 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
+All 138 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
 
 | Test file | Module | What is verified | Tests | Result |
 | --- | --- | --- | --- | --- |
@@ -129,7 +129,7 @@ All 132 integration tests pass. Each one sends a real HTTP request to the REST A
 | `Api/EmployeeRulesApiTest` | Safeguards and roles | Last Admin / last HR can't be demoted or deleted; last Head can't be demoted or moved while the department has staff; **only an Admin can create, edit or remove Admins or grant the Admin role**; HR manages everyone else; unique email; demo seeder builds the company and re-runs safely | 14 | Pass |
 | `Api/DataIntegrityApiTest` | Hierarchy, skills, soft deletes, factories | Parent departments; no loops; deleting a parent moves children up; soft delete cancels pending leave, keeps history, blocks sign-in, restores; restore needs the department; IDs never reused; deleted names point to restore; skills CRUD, levels, sync, filter, cascade; factories | 17 | Pass |
 | `Api/NotificationsActivityAvatarTest` | Notifications, activity log, avatars | Each leave step notifies the right person (never the actor); rejection includes the reason; list / count / mark read; can't read someone else's notification; changes logged with who and old → new; passwords never logged; sign-ins logged with last login; skill changes logged; activity filters and access; avatar upload replaces the old file; unsafe files refused | 12 | Pass |
-| `Api/HolidayImportTest` | Holiday import | CSV and real Excel files (date cells); dd/mm/yyyy and ";" CSVs; preview saves nothing; existing, duplicate and invalid rows reported and skipped; missing headings, empty files, wrong types and over 500 rows refused; employees can't import; both templates download and import as they are | 11 | Pass |
+| `Api/HolidayImportTest` | Holiday upload and clear all | CSV and real Excel files (date cells); dd/mm/yyyy and ";" CSVs; preview saves nothing; a second upload replaces same dates, adds new ones and keeps the rest; re-uploading changes nothing; duplicate and invalid rows reported and skipped; refused files; clear all (one log line, days count again); employees can't import or clear; both templates download and import as they are | 17 | Pass |
 | `ReportTest` | CSV and PDF exports | Only Admin/HR can export; guests go to login; CSV rows and working days; exports use the same filters as the pages; date-range overlap; formula text neutralised; all three PDFs download | 13 | Pass |
 | `LeaveRolloverTest` | Rollover | Off by default; unused days carry over up to HR's maximum; staff hired this year carry nothing; only HR or Admin can change it | 6 | Pass |
 | `SpaShellTest` | The SPA | Every page path serves the React app; `/api` paths are not swallowed by it; the CSRF-cookie endpoint and health check work | 4 | Pass |

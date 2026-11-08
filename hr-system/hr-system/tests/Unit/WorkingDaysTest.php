@@ -66,13 +66,6 @@ class WorkingDaysTest extends TestCase
         $this->assertSame(1, $this->days('2026-11-03', '2026-11-03'));
     }
 
-    public function test_yearly_holiday_applies_every_year(): void
-    {
-        Holiday::create(['date' => '2020-11-03', 'name' => 'Every year', 'recurring' => true]);
-
-        $this->assertSame(0, $this->days('2026-11-03', '2026-11-03'));
-    }
-
     public function test_holiday_on_a_weekend_is_not_subtracted_twice(): void
     {
         Holiday::create(['date' => '2026-11-07', 'name' => 'Saturday holiday']);

@@ -14,14 +14,21 @@ use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 use Throwable;
 
 /**
- * Bulk-add public holidays from an Excel (.xlsx) or CSV file.
+ * Bulk-add public holidays from an Excel (.xlsx) or CSV file — HR uploads each year's list.
  *
  * File layout (see the downloadable template): a heading row, then one holiday per row.
- *   date       2026-12-25, 25/12/2026 (day/month/year) or an Excel date cell
- *   name       e.g. Christmas Day
- *   recurring  yes / no (blank = no) — "yes" means the same date every year
+ *   date   2026-12-25, 25/12/2026 (day/month/year) or an Excel date cell
+ *   name   e.g. Christmas Day
  *
- * preview() checks every row without saving; import() saves the rows marked "new".
+ * Each row is compared with the holidays already saved:
+ *   new        no holiday on that date yet          → added
+ *   replace    a holiday on that date, other name   → its name is replaced by the file's
+ *   unchanged  same date and same name              → nothing to do
+ *   duplicate  the date appears earlier in the file → skipped
+ *   error      not a valid row                      → skipped (with the reason)
+ * Holidays on dates that are not in the file are kept.
+ *
+ * preview() checks every row without saving; import() applies "new" and "replace".
  */
 class HolidayImportService
 {
@@ -34,15 +41,11 @@ class HolidayImportService
      */
     public function preview(UploadedFile $file): array
     {
-        $raw = $this->readRows($file);
-        $rows = $this->checkRows($raw);
+        $rows = $this->checkRows($this->readRows($file));
 
         return ['rows' => $rows, 'summary' => $this->summary($rows)];
     }
 
-    /**
-     * Save the "new" rows. Duplicates and rows with errors are skipped.
-     */
     public function import(UploadedFile $file): array
     {
         $result = $this->preview($file);
@@ -50,8 +53,11 @@ class HolidayImportService
         DB::transaction(function () use (&$result) {
             foreach ($result['rows'] as &$row) {
                 if ($row['status'] === 'new') {
-                    Holiday::create(['date' => $row['date'], 'name' => $row['name'], 'recurring' => $row['recurring']]);
-                    $row['status'] = 'imported';
+                    Holiday::create(['date' => $row['date'], 'name' => $row['name']]);
+                    $row['status'] = 'added';
+                } elseif ($row['status'] === 'replace') {
+                    Holiday::whereDate('date', $row['date'])->first()?->update(['name' => $row['name']]);
+                    $row['status'] = 'replaced';
                 }
             }
         });
@@ -78,7 +84,8 @@ class HolidayImportService
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     $values = $row->toArray();
-                    if (collect($values)->filter(fn ($v) => $v !== null && trim((string) ($v instanceof DateTimeInterface ? 'x' : $v)) !== '')->isNotEmpty()) {
+                    $hasContent = collect($values)->contains(fn ($v) => $v instanceof DateTimeInterface || trim((string) $v) !== '');
+                    if ($hasContent) {
                         $rows[] = $values;
                     }
                 }
@@ -115,7 +122,8 @@ class HolidayImportService
     {
         $columns = $this->columns(array_shift($raw));
 
-        $existing = Holiday::pluck('date')->map(fn ($d) => $d->format('Y-m-d'))->flip();
+        // date => current name, for everything already saved
+        $existing = Holiday::all()->mapWithKeys(fn ($h) => [$h->date->format('Y-m-d') => $h->name])->all();
         $seen = [];
         $out = [];
 
@@ -123,53 +131,45 @@ class HolidayImportService
             $rowNumber = $i + 2; // the heading is row 1, as in Excel
             $rawDate = $cells[$columns['date']] ?? null;
             $name = trim((string) ($cells[$columns['name']] ?? ''));
-            $rawRecurring = isset($columns['recurring']) ? ($cells[$columns['recurring']] ?? '') : '';
 
             $date = $this->parseDate($rawDate);
-            $recurring = $this->parseYesNo($rawRecurring);
             $shownDate = $date ?? ($rawDate instanceof DateTimeInterface ? $rawDate->format('Y-m-d') : trim((string) $rawDate));
+            $current = $date !== null ? ($existing[$date] ?? null) : null;
 
             [$status, $message] = match (true) {
                 $date === null => ['error', $shownDate === '' ? 'Date is missing.' : "“{$shownDate}” is not a date. Use 2026-12-25 or 25/12/2026."],
                 $name === '' => ['error', 'Name is missing.'],
                 mb_strlen($name) > 100 => ['error', 'Name is longer than 100 characters.'],
-                $recurring === null => ['error', '“recurring” must be yes or no.'],
                 isset($seen[$date]) => ['duplicate', "Same date as row {$seen[$date]} in this file."],
-                isset($existing[$date]) => ['exists', 'A holiday on this date already exists.'],
-                default => ['new', null],
+                $current === null => ['new', null],
+                $current === $name => ['unchanged', 'Already saved with this name.'],
+                default => ['replace', "Replaces “{$current}”."],
             };
 
             if ($date !== null && ! isset($seen[$date])) {
                 $seen[$date] = $rowNumber;
             }
 
-            $out[] = [
-                'row' => $rowNumber,
-                'date' => $date ?? $shownDate,
-                'name' => $name,
-                'recurring' => (bool) $recurring,
-                'status' => $status,
-                'message' => $message,
-            ];
+            $out[] = ['row' => $rowNumber, 'date' => $date ?? $shownDate, 'name' => $name, 'status' => $status, 'message' => $message];
         }
 
         return $out;
     }
 
-    // Find the date / name / recurring columns in the heading row (any order, any case).
+    // Find the date and name columns in the heading row (any order, any case).
     private function columns(array $heading): array
     {
         $map = [];
         foreach ($heading as $index => $title) {
             $key = strtolower(trim(preg_replace('/^\xEF\xBB\xBF/', '', (string) $title))); // strip Excel's BOM
-            if (in_array($key, ['date', 'name', 'recurring'], true)) {
+            if (in_array($key, ['date', 'name'], true)) {
                 $map[$key] = $index;
             }
         }
 
         if (! isset($map['date'], $map['name'])) {
             throw new BusinessRuleException(
-                'The first row must be the headings: date, name, recurring. Download the template to see the layout.',
+                'The first row must be the headings: date, name. Download the template to see the layout.',
                 'missing_headings',
             );
         }
@@ -200,18 +200,6 @@ class HolidayImportService
         return null;
     }
 
-    // yes/no, true/false, 1/0, y/n, x; blank = no. null = not understood.
-    private function parseYesNo(mixed $value): ?bool
-    {
-        $text = strtolower(trim((string) $value));
-
-        return match (true) {
-            in_array($text, ['', 'no', 'n', 'false', '0'], true) => false,
-            in_array($text, ['yes', 'y', 'true', '1', 'x'], true) || $value === true => true,
-            default => null,
-        };
-    }
-
     private function summary(array $rows): array
     {
         $count = fn (string $status) => count(array_filter($rows, fn ($r) => $r['status'] === $status));
@@ -219,10 +207,12 @@ class HolidayImportService
         return [
             'total' => count($rows),
             'new' => $count('new'),
-            'imported' => $count('imported'),
-            'exists' => $count('exists'),
+            'replace' => $count('replace'),
+            'unchanged' => $count('unchanged'),
             'duplicate' => $count('duplicate'),
             'error' => $count('error'),
+            'added' => $count('added'),
+            'replaced' => $count('replaced'),
         ];
     }
 }

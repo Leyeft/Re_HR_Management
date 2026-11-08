@@ -98,6 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('holidays', [HolidayController::class, 'store']);
         Route::post('holidays/import', [HolidayController::class, 'import']);
+        Route::delete('holidays', [HolidayController::class, 'destroyAll']); // clear all
         Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy']);
     });
 });

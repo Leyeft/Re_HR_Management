@@ -180,11 +180,11 @@ class StaffApiTest extends TestCase
     public function test_holidays_everyone_can_list_hr_can_change(): void
     {
         $this->actAsAdmin();
-        $id = $this->postJson('/api/holidays', ['date' => '2026-12-25', 'name' => 'Christmas Day', 'recurring' => true])
+        $id = $this->postJson('/api/holidays', ['date' => '2026-12-25', 'name' => 'Christmas Day'])
             ->assertCreated()->json('data.id');
 
         Sanctum::actingAs($this->makeEmployee()->user);
-        $this->getJson('/api/holidays')->assertOk()->assertJsonPath('data.0.recurring', true);
+        $this->getJson('/api/holidays')->assertOk()->assertJsonPath('data.0.name', 'Christmas Day');
         $this->deleteJson("/api/holidays/{$id}")->assertForbidden();
 
         $this->actAsAdmin();

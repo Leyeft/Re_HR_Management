@@ -52,12 +52,9 @@ class DemoSeeder extends Seeder
             'Electrical', 'Accounting', 'Payroll', 'Leadership', 'English'])
             ->mapWithKeys(fn ($name) => [$name => Skill::firstOrCreate(['name' => $name])]);
 
-        // Common yearly holidays — HR adds the rest on the Leave Settings page.
-        foreach (['01-01' => "New Year's Day", '12-25' => 'Christmas Day'] as $md => $name) {
-            Holiday::firstOrCreate(
-                ['date' => now()->year . '-' . $md],
-                ['name' => $name, 'recurring' => true],
-            );
+        // A few public holidays for this year — HR uploads each year's full list (Leave settings → Import).
+        foreach (['01-01' => "New Year's Day", '04-13' => 'Songkran Festival', '12-25' => 'Christmas Day'] as $md => $name) {
+            Holiday::firstOrCreate(['date' => now()->year . '-' . $md], ['name' => $name]);
         }
 
         // [name, email, system role, department, rank, years ago hired]

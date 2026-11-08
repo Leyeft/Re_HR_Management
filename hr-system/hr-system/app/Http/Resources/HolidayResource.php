@@ -14,7 +14,6 @@ class HolidayResource extends JsonResource
             'id' => $this->id,
             'date' => $this->date?->format('Y-m-d'),
             'name' => $this->name,
-            'recurring' => $this->recurring,
         ];
     }
 }

@@ -10,16 +10,17 @@ import Spinner from './Spinner';
 
 const STATUS = {
     new: { label: 'Will be added', cls: 'bg-success-bg text-success' },
-    imported: { label: 'Added', cls: 'bg-success-bg text-success' },
-    exists: { label: 'Already exists', cls: 'bg-bg text-muted' },
+    replace: { label: 'Will replace', cls: 'bg-info-bg text-info' },
+    unchanged: { label: 'No change', cls: 'bg-bg text-muted' },
     duplicate: { label: 'Duplicate', cls: 'bg-warning-bg text-warning' },
     error: { label: 'Error', cls: 'bg-danger-bg text-danger' },
 };
 
 /**
- * Bulk-add public holidays from Excel / CSV:
- *   1. download the template   2. choose a file → preview every row   3. import the new ones.
- * Nothing is saved until "Import" is clicked.
+ * Bulk-add public holidays from Excel / CSV (upload each year's list):
+ *   1. download the template   2. choose a file → preview every row   3. import.
+ * New dates are added; a date that's already saved gets the file's name; other saved
+ * dates are kept. Nothing is saved until "Import" is clicked.
  */
 export default function ImportHolidaysModal({ show, onClose }) {
     const dispatch = useDispatch();
@@ -78,21 +79,24 @@ export default function ImportHolidaysModal({ show, onClose }) {
     };
 
     const s = preview?.summary;
+    const changes = s ? s.new + s.replace : 0;
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <div className="space-y-5 p-6">
                 <div>
                     <h2 className="text-lg font-medium text-content">Import holidays from Excel or CSV</h2>
-                    <p className="mt-1 text-sm text-muted">Add many public holidays at once. You'll see a preview before anything is saved.</p>
+                    <p className="mt-1 text-sm text-muted">
+                        Upload this year's holidays. New dates are added, a date that's already saved gets the name from your file,
+                        and other saved dates stay. You'll see a preview before anything is saved.
+                    </p>
                 </div>
 
                 {/* Step 1 */}
                 <section className="rounded-md border border-line p-4">
                     <p className="text-sm font-medium text-content">1. Download the template</p>
                     <p className="mt-1 text-xs text-muted">
-                        Columns: <b>date</b> (2026-12-25 or 25/12/2026), <b>name</b>, <b>recurring</b> (yes = same date every year).
-                        Replace the example rows with your own.
+                        Two columns: <b>date</b> (2026-12-25 or 25/12/2026) and <b>name</b>. Replace the example rows with your own.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                         <a href="/templates/holidays.xlsx" className="rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg">Excel template (.xlsx)</a>
@@ -119,7 +123,8 @@ export default function ImportHolidaysModal({ show, onClose }) {
                     <section>
                         <p className="text-sm text-content" aria-live="polite">
                             <b>{s.new}</b> to add
-                            {s.exists > 0 && <> · {s.exists} already exist</>}
+                            {s.replace > 0 && <> · <b>{s.replace}</b> to replace</>}
+                            {s.unchanged > 0 && <> · {s.unchanged} unchanged</>}
                             {s.duplicate > 0 && <> · {s.duplicate} duplicate</>}
                             {s.error > 0 && <> · <span className="text-danger">{s.error} with errors (skipped)</span></>}
                         </p>
@@ -130,7 +135,6 @@ export default function ImportHolidaysModal({ show, onClose }) {
                                         <th className="p-2">Row</th>
                                         <th className="p-2">Date</th>
                                         <th className="p-2">Name</th>
-                                        <th className="p-2">Every year</th>
                                         <th className="p-2">Status</th>
                                     </tr>
                                 </thead>
@@ -140,7 +144,6 @@ export default function ImportHolidaysModal({ show, onClose }) {
                                             <td className="p-2 tabular-nums text-muted">{r.row}</td>
                                             <td className="whitespace-nowrap p-2">{r.date || '—'}</td>
                                             <td className="p-2">{r.name || '—'}</td>
-                                            <td className="p-2">{r.status === 'error' ? '—' : r.recurring ? 'Yes' : 'No'}</td>
                                             <td className="p-2">
                                                 <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
                                                 {r.message && <p className="mt-1 text-xs text-muted">{r.message}</p>}
@@ -156,8 +159,8 @@ export default function ImportHolidaysModal({ show, onClose }) {
                 {/* Step 3 */}
                 <div className="flex justify-end gap-3 border-t border-line pt-4">
                     <SecondaryButton type="button" onClick={onClose}>Cancel</SecondaryButton>
-                    <PrimaryButton type="button" onClick={runImport} disabled={busy || !s || s.new === 0}>
-                        {s?.new ? `3. Import ${s.new} holiday${s.new === 1 ? '' : 's'}` : '3. Import'}
+                    <PrimaryButton type="button" onClick={runImport} disabled={busy || changes === 0}>
+                        {changes ? `3. Import (${[s.new && `${s.new} new`, s.replace && `${s.replace} replaced`].filter(Boolean).join(', ')})` : '3. Import'}
                     </PrimaryButton>
                 </div>
             </div>
