@@ -96,7 +96,7 @@ export default function DeleteEmployeeModal({ employee, onClose, onDeleted }) {
                 >
                     <h2 className="text-lg font-medium text-content">Delete {employee.user?.name}?</h2>
                     <p className="mt-2 text-sm text-muted">
-                        This removes their account and all their leave records. It cannot be undone.
+                        They won't be able to sign in, and any leave still waiting for approval is cancelled. Past leave stays on record, and you can restore them later from the Deleted list.
                     </p>
                     <div className="mt-4">
                         <InputLabel htmlFor="confirm-delete" value={`Type ${CONFIRM_WORD} to confirm`} />

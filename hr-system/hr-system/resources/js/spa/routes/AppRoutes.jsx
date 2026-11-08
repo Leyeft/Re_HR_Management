@@ -12,6 +12,7 @@ import DeptHistory from '../pages/leave/DeptHistory';
 import MyLeave from '../pages/leave/MyLeave';
 import RequestLeave from '../pages/leave/RequestLeave';
 import LeaveSettings from '../pages/settings/LeaveSettings';
+import Skills from '../pages/skills/Skills';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import ResetPassword from '../pages/auth/ResetPassword';
 import NotFound from '../pages/NotFound';
@@ -59,6 +60,7 @@ export default function AppRoutes() {
                         <Route path="/employees/:id" element={<EmployeeProfile />} />
                         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
                         <Route path="/settings/leave" element={<LeaveSettings />} />
+                        <Route path="/skills" element={<Skills />} />
                     </Route>
 
                     <Route path="*" element={<NotFound />} />

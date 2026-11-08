@@ -5,6 +5,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { selectCan } from '../store/authSlice';
+import SkillChips from './SkillChips';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 
@@ -51,6 +52,13 @@ export default function EmployeeDetailsModal({ employee, onClose }) {
                             </>
                         )}
                     </dl>
+
+                    {employee.skills && (
+                        <div className="mt-4">
+                            <h3 className="mb-2 text-sm font-medium text-muted">Skills</h3>
+                            <SkillChips skills={employee.skills} />
+                        </div>
+                    )}
 
                     {ls && (
                         <div className="mt-6">

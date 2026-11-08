@@ -13,13 +13,20 @@ export const createDepartment = apiThunk('departments/create', async (values) =>
 
 export const updateDepartment = apiThunk('departments/update', async ({ id, ...values }) => (await api.put(`/departments/${id}`, values)).data);
 
+// Soft delete. Sub-departments move up to the deleted one's parent, so the page reloads the list after.
 export const deleteDepartment = apiThunk('departments/delete', async (id) => {
-        const { data } = await api.delete(`/departments/${id}`);
-        return { id, message: data.message };
-    });
+    const { data } = await api.delete(`/departments/${id}`);
+    return { id, message: data.message };
+});
+
+// Deleted departments (to restore them).
+export const fetchDeletedDepartments = apiThunk('departments/fetchDeleted',
+    async () => (await api.get('/departments', { params: { per_page: 'all', trashed: 'only' } })).data.data);
+
+export const restoreDepartment = apiThunk('departments/restore', async (id) => (await api.post(`/departments/${id}/restore`)).data);
 
 const byName = (a, b) => a.name.localeCompare(b.name);
-const initialState = { items: [], status: 'idle', error: null };
+const initialState = { items: [], status: 'idle', error: null, deleted: { items: [], status: 'idle' } };
 
 const departmentsSlice = createSlice({
     name: 'departments',
@@ -48,6 +55,17 @@ const departmentsSlice = createSlice({
             })
             .addCase(deleteDepartment.fulfilled, (state, { payload }) => {
                 state.items = state.items.filter((d) => d.id !== payload.id);
+            })
+            .addCase(fetchDeletedDepartments.pending, (state) => {
+                state.deleted.status = 'loading';
+            })
+            .addCase(fetchDeletedDepartments.fulfilled, (state, { payload }) => {
+                state.deleted = { items: payload, status: 'succeeded' };
+            })
+            .addCase(restoreDepartment.fulfilled, (state, { payload }) => {
+                state.deleted.items = state.deleted.items.filter((d) => d.id !== payload.data.id);
+                state.items.push(payload.data);
+                state.items.sort(byName);
             })
             .addCase(logout.fulfilled, () => initialState)
             .addCase(sessionEnded, () => initialState);

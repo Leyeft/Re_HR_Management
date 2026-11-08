@@ -86,7 +86,7 @@ class ReportController extends Controller
 
     public function employees(Request $request, string $format)
     {
-        $filters = $request->only('search', 'department', 'rank', 'sort');
+        $filters = $request->only('search', 'department', 'rank', 'skill', 'sort');
 
         $employees = Employee::listQuery($filters)->get()
             ->each(fn (Employee $e) => $e->setAttribute('leave_summary', $e->leaveSummary()));

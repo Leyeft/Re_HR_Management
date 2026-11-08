@@ -20,6 +20,9 @@ export const createEmployee = apiThunk('employees/create', async (values) => (aw
 
 export const updateEmployee = apiThunk('employees/update', async ({ id, ...values }) => (await api.put(`/employees/${id}`, values)).data);
 
+export const restoreEmployee = apiThunk('employees/restore', async (id) => (await api.post(`/employees/${id}/restore`)).data);
+
+// Soft delete — the person can be restored from the Deleted list.
 export const deleteEmployee = apiThunk('employees/delete', async (id) => {
         const { data } = await api.delete(`/employees/${id}`);
         return { id, message: data.message };
@@ -74,6 +77,10 @@ const employeesSlice = createSlice({
                 if (state.current.item?.id === payload.data.id) {
                     state.current.item = { ...state.current.item, ...payload.data };
                 }
+            })
+            .addCase(restoreEmployee.fulfilled, (state, { payload }) => {
+                state.list.items = state.list.items.filter((e) => e.id !== payload.data.id);
+                if (state.list.meta) state.list.meta.total -= 1;
             })
             .addCase(deleteEmployee.fulfilled, (state, { payload }) => {
                 state.list.items = state.list.items.filter((e) => e.id !== payload.id);

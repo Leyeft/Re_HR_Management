@@ -7,6 +7,7 @@ import employeesReducer from './employeesSlice';
 import holidaysReducer from './holidaysSlice';
 import leaveReducer from './leaveSlice';
 import settingsReducer from './settingsSlice';
+import skillsReducer from './skillsSlice';
 import toastReducer from './toastSlice';
 
 /**
@@ -19,6 +20,7 @@ import toastReducer from './toastSlice';
  *   leave       – my leave + balance, Head approvals/history, HR's all-leave list
  *   holidays    – public holidays (used to count working days)
  *   settings    – leave rollover policy
+ *   skills      – skills employees can have (with a level, via the employee_skill pivot)
  */
 export const store = configureStore({
     reducer: {
@@ -30,6 +32,7 @@ export const store = configureStore({
         leave: leaveReducer,
         holidays: holidaysReducer,
         settings: settingsReducer,
+        skills: skillsReducer,
     },
 });
 

@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import DeleteEmployeeModal from '../../components/DeleteEmployeeModal';
 import Page, { LoadError } from '../../components/Page';
 import Pagination from '../../components/Pagination';
+import SkillChips from '../../components/SkillChips';
 import { PageLoader } from '../../components/Spinner';
 import { fetchEmployee, fetchEmployeeHistory } from '../../store/employeesSlice';
 
@@ -80,6 +81,10 @@ export default function EmployeeProfile() {
                     <Field label="Date hired">{employee.date_hired}</Field>
                     <Field label="Years of service">{employee.leave_summary?.years_of_service}</Field>
                 </dl>
+                <div className="mt-6 border-t border-line pt-4">
+                    <h3 className="mb-2 text-xs uppercase tracking-wide text-muted">Skills</h3>
+                    <SkillChips skills={employee.skills} />
+                </div>
             </section>
 
             <LeaveBalance summary={employee.leave_summary} />

@@ -10,9 +10,11 @@ import Page, { LoadError } from '../../components/Page';
 import Pagination from '../../components/Pagination';
 import Spinner, { PageLoader } from '../../components/Spinner';
 import { fetchDepartments } from '../../store/departmentsSlice';
-import { fetchEmployees } from '../../store/employeesSlice';
+import { fetchEmployees, restoreEmployee } from '../../store/employeesSlice';
+import { fetchSkills } from '../../store/skillsSlice';
+import { toastError, toastSuccess } from '../../store/toastSlice';
 
-const FILTER_KEYS = ['search', 'department', 'rank', 'sort', 'page'];
+const FILTER_KEYS = ['search', 'department', 'rank', 'skill', 'sort', 'trashed', 'page'];
 
 /**
  * Employee list (Admin/HR). Search, filters, sort and page live in the URL
@@ -24,8 +26,10 @@ export default function Employees() {
     const [params, setParams] = useSearchParams();
     const { items, meta, status, error } = useSelector((state) => state.employees.list);
     const departments = useSelector((state) => state.departments.items);
+    const skills = useSelector((state) => state.skills.items);
     const [viewing, setViewing] = useState(null);
     const [deleting, setDeleting] = useState(null);
+    const [restoring, setRestoring] = useState(null);
 
     const filters = Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) ?? '']));
     const [search, setSearch] = useState(filters.search);
@@ -41,20 +45,41 @@ export default function Employees() {
         if (!departments.length) dispatch(fetchDepartments());
     }, [dispatch, departments.length]);
 
+    useEffect(() => {
+        if (!skills.length) dispatch(fetchSkills());
+    }, [dispatch, skills.length]);
+
+    const showingDeleted = filters.trashed === 'only';
+
+    const restore = async (e) => {
+        setRestoring(e.id);
+        try {
+            const res = await dispatch(restoreEmployee(e.id)).unwrap();
+            dispatch(toastSuccess(`${e.user?.name}: ${res.message}`));
+        } catch (err) {
+            dispatch(toastError(err.message));
+        } finally {
+            setRestoring(null);
+        }
+    };
+
     // Change filters; any filter change goes back to page 1.
     const update = (changes) => {
         const next = { ...filters, page: '', ...changes };
         setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v !== '' && v !== null)));
     };
 
-    const anyFilter = filters.search || filters.department || filters.rank;
+    const anyFilter = filters.search || filters.department || filters.rank || filters.skill;
 
     return (
         <Page
             title="Employees"
             actions={
                 <>
-                    <ExportLinks path="/reports/employees" params={{ search: filters.search, department: filters.department, rank: filters.rank, sort: filters.sort }} />
+                    <ExportLinks path="/reports/employees" params={{ search: filters.search, department: filters.department, rank: filters.rank, skill: filters.skill, sort: filters.sort }} />
+                    <Link to="/skills" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium hover:bg-bg">
+                        Skills
+                    </Link>
                     <Link to="/employees/new" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
                         + Add employee
                     </Link>
@@ -90,6 +115,15 @@ export default function Employees() {
                         <option value="head">Head</option>
                     </SelectInput>
                 </label>
+                <label className="text-xs font-medium text-muted">
+                    Skill
+                    <SelectInput className="mt-1 block w-full text-sm md:w-44" value={filters.skill} onChange={(e) => update({ skill: e.target.value })}>
+                        <option value="">Any skill</option>
+                        {skills.map((s) => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                    </SelectInput>
+                </label>
                 <div className="flex gap-2">
                     <button type="submit" className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover">Search</button>
                     {anyFilter && (
@@ -108,6 +142,21 @@ export default function Employees() {
             </form>
 
             {status === 'failed' && <LoadError message={error} onRetry={load} />}
+
+            <div role="tablist" className="flex w-fit gap-1 rounded-lg bg-white p-1 shadow">
+                {[['', 'Active'], ['only', 'Deleted']].map(([value, label]) => (
+                    <button
+                        key={label}
+                        type="button"
+                        role="tab"
+                        aria-selected={filters.trashed === value}
+                        onClick={() => update({ trashed: value })}
+                        className={`rounded-md px-3 py-1.5 text-sm font-medium ${filters.trashed === value ? 'bg-primary text-white' : 'text-muted hover:bg-bg hover:text-content'}`}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
 
             <div className="relative rounded-lg bg-white shadow">
                 {status === 'loading' && items.length > 0 && (
@@ -164,15 +213,23 @@ export default function Employees() {
                                             ) : '—'}
                                         </td>
                                         <td className="whitespace-nowrap p-3 text-right">
-                                            <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
-                                            <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
+                                            {showingDeleted ? (
+                                                <button type="button" onClick={() => restore(e)} disabled={restoring === e.id} className="font-medium text-primary hover:underline disabled:opacity-50">
+                                                    {restoring === e.id ? 'Restoring…' : 'Restore'}
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
+                                                    <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
+                                                </>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
                                 {status === 'succeeded' && items.length === 0 && (
                                     <tr>
                                         <td colSpan="7" className="p-6 text-center text-muted">
-                                            {anyFilter ? 'No employees match these filters.' : 'No employees yet.'}
+                                            {showingDeleted ? 'No deleted employees.' : anyFilter ? 'No employees match these filters.' : 'No employees yet.'}
                                         </td>
                                     </tr>
                                 )}

@@ -11,7 +11,9 @@ import Page, { LoadError } from '../../components/Page';
 import { PageLoader } from '../../components/Spinner';
 import useApiForm from '../../hooks/useApiForm';
 import { fetchDepartments } from '../../store/departmentsSlice';
+import SkillsEditor from '../../components/SkillsEditor';
 import { createEmployee, fetchEmployee, updateEmployee } from '../../store/employeesSlice';
+import { fetchSkills } from '../../store/skillsSlice';
 import { toastSuccess } from '../../store/toastSlice';
 
 const today = new Date().toISOString().slice(0, 10);
@@ -65,7 +67,13 @@ function Form({ employee, departments }) {
         rank: employee?.rank ?? 'employee',
         date_of_birth: employee?.date_of_birth ?? '',
         date_hired: employee?.date_hired ?? '',
+        skills: (employee?.skills ?? []).map((s) => ({ id: s.id, level: s.level })),
     });
+    const allSkills = useSelector((state) => state.skills.items);
+
+    useEffect(() => {
+        if (!allSkills.length) dispatch(fetchSkills());
+    }, [dispatch, allSkills.length]);
     const { data, errors, field } = form;
 
     // HR and Admin accounts can't be Heads — lock the rank when one is chosen.
@@ -157,6 +165,11 @@ function Form({ employee, departments }) {
                             <option value="head">Head of Department</option>
                         </SelectInput>
                     </Field>
+                </fieldset>
+
+                <fieldset>
+                    <legend className="mb-2 text-sm font-semibold text-content">Skills</legend>
+                    <SkillsEditor value={data.skills} onChange={(skills) => form.setData('skills', skills)} allSkills={allSkills} errors={errors} />
                 </fieldset>
 
                 <div className="flex justify-end gap-3 border-t border-line pt-4">
