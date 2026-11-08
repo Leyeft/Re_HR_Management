@@ -40,11 +40,11 @@ class ProfileController extends Controller
         $old = $user->avatar_path;
 
         // Stored under a random name (never the uploaded file name) on the public disk.
-        $path = $request->file('avatar')->store('avatars', 'public');
+        $path = $request->file('avatar')->store('avatars', config('filesystems.avatar_disk'));
         $user->forceFill(['avatar_path' => $path])->save();
 
         if ($old) {
-            Storage::disk('public')->delete($old);
+            Storage::disk(config('filesystems.avatar_disk'))->delete($old);
         }
 
         return (new UserResource($user))->additional(['message' => 'Profile photo updated.']);
@@ -56,7 +56,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
+            Storage::disk(config('filesystems.avatar_disk'))->delete($user->avatar_path);
             $user->forceFill(['avatar_path' => null])->save();
         }
 

@@ -17,7 +17,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
-            'avatar_url' => $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null,
+            'avatar_url' => $this->avatar_path ? Storage::disk(config('filesystems.avatar_disk'))->url($this->avatar_path) : null,
             'last_login_at' => $this->last_login_at?->toIso8601String(),
         ];
     }

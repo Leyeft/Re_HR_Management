@@ -79,11 +79,13 @@ class DemoSeeder extends Seeder
         ];
 
         $created = [];
+        // "password" locally; set DEMO_PASSWORD on a public server (config/app.php → demo_password).
+        $passwordHash = Hash::make(config('app.demo_password'));
 
         foreach ($people as [$name, $email, $role, $deptName, $rank, $yearsAgo]) {
             $user = User::firstOrCreate(['email' => $email], [
                 'name' => $name,
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => $role,
             ]);
 
@@ -128,6 +130,7 @@ class DemoSeeder extends Seeder
                 Employee::factory()
                     ->count(2)
                     ->for($departments[$deptName])
+                    ->state(fn () => ['user_id' => User::factory()->state(['role' => 'employee', 'password' => $passwordHash])])
                     ->create()
                     ->each(fn (Employee $e) => $e->skills()->attach(
                         $skills->random(2)->pluck('id')->mapWithKeys(fn ($id) => [$id => ['level' => fake()->randomElement(Skill::LEVELS)]])->all()

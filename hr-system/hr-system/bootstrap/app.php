@@ -27,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Hosting platforms put the app behind a proxy / load balancer that handles HTTPS.
+        // Trusting it lets Laravel see the real scheme and client IP, so generated links are
+        // https://, secure cookies work and signed links (email verification) validate.
+        $middleware->trustProxies(at: '*');
+
         // The React SPA is served from the same domain and logs in with Sanctum's
         // session cookie (with CSRF protection), not with tokens stored in the browser.
         $middleware->statefulApi();

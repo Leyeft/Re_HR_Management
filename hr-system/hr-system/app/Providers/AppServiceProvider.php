@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // In production every link Laravel generates (assets, emails, signed URLs) uses https.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
 
         // Every sign-in: remember when/where (shown on profiles) and add it to the activity log.
         // saveQuietly so this bookkeeping isn't logged as an "edit" of the user.

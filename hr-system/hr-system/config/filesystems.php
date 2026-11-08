@@ -16,6 +16,13 @@ return [
     'default' => env('FILESYSTEM_DISK', 'local'),
 
     /*
+    | Where profile photos are stored. "public" = storage/app/public on the server
+    | (fine locally, or in production with a persistent volume). Set AVATAR_DISK=s3
+    | to use S3-compatible cloud storage, which survives redeploys on any host.
+    */
+    'avatar_disk' => env('AVATAR_DISK', 'public'),
+
+    /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------

@@ -67,6 +67,10 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'Asia/Bangkok'), // GMT+7
 
+    // Password given to the demo accounts by DemoSeeder. Keep "password" locally;
+    // on a public server set DEMO_PASSWORD to something private before seeding.
+    'demo_password' => env('DEMO_PASSWORD', 'password'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
