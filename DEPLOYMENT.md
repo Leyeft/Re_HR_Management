@@ -26,6 +26,67 @@ Any of these suit a Laravel + MySQL app. **Check each one's current pricing and 
 
 ---
 
+## Railway: step by step (the host used for Crewly)
+
+Railway builds the app with **Railpack**, which recognises Laravel by its `artisan` file and does most of the work automatically:
+- installs Composer packages
+- installs npm packages and runs `npm run build`
+- caches the config and routes
+- serves `public/` with FrankenPHP
+- on every start, **runs `php artisan migrate --force` and `storage:link`**
+
+So you don't need a Dockerfile or a custom start command. The settings below are all in the Railway dashboard, because Railway's `railway.json` config files are deprecated.
+
+**1. Add the database.** In your Railway project, click **+ Create → Database → MySQL**. Keep the service name **MySQL**; the variables in step 3 refer to it by that name.
+
+**2. App service settings.** Click the service connected to GitHub, then **Settings**:
+
+| Setting | Value |
+| --- | --- |
+| Source → **Root Directory** | `/hr-system/hr-system` (the Laravel app's folder; without it Railway won't find Laravel) |
+| Source → **Branch** | `main` |
+| Deploy → **Healthcheck Path** | `/up` |
+| Networking → **Generate Domain** | Click it to get `https://<name>.up.railway.app` |
+
+**3. Variables.** Open the app service's **Variables** tab, choose **Raw Editor**, and paste the block below. Railway fills in each `${{...}}` part itself:
+
+```dotenv
+APP_NAME=Crewly
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=<paste the output of: php artisan key:generate --show>
+APP_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}
+APP_TIMEZONE=Asia/Bangkok
+DB_CONNECTION=mysql
+DB_URL=${{MySQL.MYSQL_URL}}
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+SANCTUM_STATEFUL_DOMAINS=${{RAILWAY_PUBLIC_DOMAIN}}
+CACHE_STORE=database
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=stderr
+LOG_LEVEL=warning
+MAIL_MAILER=log
+AVATAR_DISK=public
+DEMO_PASSWORD=<a private password for the demo accounts>
+```
+
+If the domain variable stays empty, generate the domain first (step 2), or paste the domain in place of `${{RAILWAY_PUBLIC_DOMAIN}}`.
+
+**4. Persistent storage for profile photos.** Right-click the app service and choose **Attach Volume**. Set the mount path to `/app/storage/app/public`.
+
+**5. Demo data (first deploy only).** Under Settings → Deploy → **Pre-Deploy Command**, enter:
+
+```bash
+php artisan migrate --force && php artisan db:seed --force
+```
+
+After the first successful deploy you can clear this field. The seeder is safe to run again, but it isn't needed.
+
+**6. Deploy.** Click **Deploy**, or push to `main`. Watch **Deployments → View logs**. Then run the checks in [section 5](#5-after-the-first-deploy-checks) below.
+
+---
+
 ## 2. Environment variables
 
 Copy the values from [`hr-system/hr-system/.env.production.example`](hr-system/hr-system/.env.production.example) into the host's environment-variable settings. The important ones:
