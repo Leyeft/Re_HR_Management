@@ -12,6 +12,7 @@ use App\Services\EmployeeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Staff management (Admin/HR). Full CRUD plus each person's leave history.
@@ -73,6 +74,7 @@ class EmployeeController extends Controller
     // DELETE /api/employees/{employee} — soft delete (can be restored).
     public function destroy(Employee $employee): JsonResponse
     {
+        Gate::authorize('manage', $employee); // only an Admin can remove an Admin
         $this->employees->delete($employee);
 
         return response()->json(['message' => 'Employee deleted. You can restore them from the Deleted list.']);
@@ -81,6 +83,7 @@ class EmployeeController extends Controller
     // POST /api/employees/{employee}/restore
     public function restore(Employee $employee): EmployeeResource
     {
+        Gate::authorize('manage', $employee);
         $employee = $this->employees->restore($employee);
 
         return (new EmployeeResource($employee->load(['user', 'department', 'skills'])))

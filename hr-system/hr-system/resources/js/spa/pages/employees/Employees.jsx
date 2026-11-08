@@ -10,6 +10,7 @@ import ExportLinks from '../../components/ExportLinks';
 import Page, { LoadError } from '../../components/Page';
 import Pagination from '../../components/Pagination';
 import Spinner, { PageLoader } from '../../components/Spinner';
+import { selectCan } from '../../store/authSlice';
 import { fetchDepartments } from '../../store/departmentsSlice';
 import { fetchEmployees, restoreEmployee } from '../../store/employeesSlice';
 import { fetchSkills } from '../../store/skillsSlice';
@@ -28,6 +29,7 @@ export default function Employees() {
     const { items, meta, status, error } = useSelector((state) => state.employees.list);
     const departments = useSelector((state) => state.departments.items);
     const skills = useSelector((state) => state.skills.items);
+    const can = useSelector(selectCan);
     const [viewing, setViewing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [restoring, setRestoring] = useState(null);
@@ -220,10 +222,14 @@ export default function Employees() {
                                                     {restoring === e.id ? 'Restoring…' : 'Restore'}
                                                 </button>
                                             ) : (
-                                                <>
-                                                    <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
-                                                    <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
-                                                </>
+                                                e.user?.role === 'admin' && !can.manage_admins ? (
+                                                    <span className="text-xs text-muted" title="Only an Admin can change Admin accounts">Admin account</span>
+                                                ) : (
+                                                    <>
+                                                        <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
+                                                        <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
+                                                    </>
+                                                )
                                             )}
                                         </td>
                                     </tr>

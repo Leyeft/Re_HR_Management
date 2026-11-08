@@ -34,6 +34,7 @@ Route::name('api.')->group(function () {
 /* ---------- Guests ---------- */
 Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('token', [AuthController::class, 'token']); // API clients (Postman, mobile)
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
 });
@@ -41,6 +42,7 @@ Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
 /* ---------- Everyone signed in ---------- */
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::delete('auth/token', [AuthController::class, 'revokeToken']);
     Route::get('auth/me', [AuthController::class, 'me']);
 
     Route::put('profile', [ProfileController::class, 'update']);

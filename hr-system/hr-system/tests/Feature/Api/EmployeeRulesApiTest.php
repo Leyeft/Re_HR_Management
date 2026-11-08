@@ -109,6 +109,59 @@ class EmployeeRulesApiTest extends TestCase
         $this->assertSoftDeleted($head);
     }
 
+    /* ===== Admin vs HR: only an Admin manages Admin accounts ===== */
+
+    public function test_hr_cannot_create_an_admin(): void
+    {
+        Sanctum::actingAs(User::factory()->create(['role' => 'hr']));
+        $dept = Department::create(['name' => 'Finance']);
+
+        $this->postJson('/api/employees', [
+            'name' => 'Sneaky', 'email' => 'sneaky@test.com', 'password' => 'secret123', 'role' => 'admin', 'rank' => 'employee',
+            'department_id' => $dept->id, 'date_of_birth' => '1990-01-01', 'date_hired' => '2020-01-01',
+        ])->assertForbidden()->assertJsonPath('message', 'Only an Admin can give someone the Admin role.');
+    }
+
+    public function test_hr_cannot_promote_anyone_to_admin_including_themselves(): void
+    {
+        $hr = $this->makeEmployee(['role' => 'hr']);
+        $this->makeEmployee(['role' => 'hr']); // not the last HR, so only the Admin rule applies
+        Sanctum::actingAs($hr->user);
+
+        $this->putJson("/api/employees/{$hr->id}", $this->payload($hr, ['role' => 'admin']))->assertForbidden();
+        $this->assertSame('hr', $hr->user->fresh()->role);
+    }
+
+    public function test_hr_cannot_edit_or_delete_an_admin(): void
+    {
+        $admin = $this->makeEmployee(['role' => 'admin']);
+        $this->makeEmployee(['role' => 'admin']);
+        Sanctum::actingAs(User::factory()->create(['role' => 'hr']));
+
+        $this->putJson("/api/employees/{$admin->id}", $this->payload($admin, ['name' => 'Renamed']))
+            ->assertForbidden()->assertJsonPath('message', 'Only an Admin can change or remove an Admin account.');
+        $this->deleteJson("/api/employees/{$admin->id}")->assertForbidden();
+    }
+
+    public function test_hr_still_manages_everyone_else(): void
+    {
+        $employee = $this->makeEmployee();
+        Sanctum::actingAs(User::factory()->create(['role' => 'hr']));
+
+        $this->putJson("/api/employees/{$employee->id}", $this->payload($employee, ['role' => 'hr']))->assertOk();
+    }
+
+    public function test_admin_can_create_another_admin(): void
+    {
+        $this->actAsAdmin();
+        $dept = Department::create(['name' => 'Finance']);
+
+        $this->postJson('/api/employees', [
+            'name' => 'Second Admin', 'email' => 'admin2@test.com', 'password' => 'secret123', 'role' => 'admin', 'rank' => 'employee',
+            'department_id' => $dept->id, 'date_of_birth' => '1990-01-01', 'date_hired' => '2020-01-01',
+        ])->assertCreated();
+    }
+
     public function test_email_must_be_unique_on_update(): void
     {
         $taken = $this->makeEmployee();

@@ -52,8 +52,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof ValidationException => [422, 'validation_error', 'Some fields need attention.', $e->errors()],
                 $e instanceof BusinessRuleException => [422, $e->errorCode, $e->getMessage(), $e->errors],
                 $e instanceof AuthenticationException => [401, 'unauthenticated', 'Please sign in to continue.', []],
+                // A policy's own reason ("Only an Admin can…") is shown; otherwise a general message.
                 $e instanceof AuthorizationException,
-                $e instanceof AccessDeniedHttpException => [403, 'forbidden', 'You do not have permission to do this.', []],
+                $e instanceof AccessDeniedHttpException => [403, 'forbidden',
+                    in_array($e->getMessage(), ['', 'This action is unauthorized.'], true) ? 'You do not have permission to do this.' : $e->getMessage(), []],
                 $e instanceof ModelNotFoundException,
                 $e instanceof NotFoundHttpException => [404, 'not_found', 'That record could not be found.', []],
                 $e instanceof TokenMismatchException => [419, 'session_expired', 'Your session expired. Please refresh and try again.', []],

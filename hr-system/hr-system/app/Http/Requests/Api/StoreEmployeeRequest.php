@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\Employee;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
@@ -10,10 +13,10 @@ use Illuminate\Validation\Rule;
  */
 class StoreEmployeeRequest extends FormRequest
 {
-    // Who may call the endpoint is decided by route middleware (auth, role, head).
-    public function authorize(): bool
+    // Route middleware lets Admin/HR in; only an Admin may create another Admin (EmployeePolicy).
+    public function authorize(): Response
     {
-        return true;
+        return Gate::inspect('grantRole', [Employee::class, (string) $this->input('role')]);
     }
 
     public function rules(): array

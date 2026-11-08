@@ -38,6 +38,36 @@ class AuthApiTest extends TestCase
         $this->assertAuthenticatedAs($employee->user);
     }
 
+    public function test_api_clients_can_get_use_and_revoke_a_token(): void
+    {
+        $user = User::factory()->create(['role' => 'hr']);
+
+        $token = $this->postJson('/api/auth/token', ['email' => $user->email, 'password' => 'password', 'device_name' => 'Postman'])
+            ->assertCreated()
+            ->assertJsonPath('data.token_type', 'Bearer')
+            ->assertJsonPath('data.profile.can.manage_staff', true)
+            ->json('data.token');
+
+        $this->withToken($token)->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.user.id', $user->id);
+        $this->assertNotNull($user->fresh()->last_login_at);
+
+        $this->withToken($token)->deleteJson('/api/auth/token')->assertOk();
+        $this->assertSame(0, $user->tokens()->count());
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
+    public function test_token_needs_the_right_password_and_a_device_name(): void
+    {
+        $user = User::factory()->create();
+
+        $this->postJson('/api/auth/token', ['email' => $user->email, 'password' => 'wrong', 'device_name' => 'Postman'])
+            ->assertStatus(422)->assertJsonValidationErrors('email');
+        $this->postJson('/api/auth/token', ['email' => $user->email, 'password' => 'password'])
+            ->assertStatus(422)->assertJsonValidationErrors('device_name');
+    }
+
     public function test_wrong_password_gives_a_structured_validation_error(): void
     {
         $user = User::factory()->create();

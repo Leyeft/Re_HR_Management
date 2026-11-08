@@ -2,18 +2,24 @@
 
 namespace App\Http\Requests\Api;
 
-use Illuminate\Validation\Rule;
+use App\Models\Employee;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 /**
  * Update a staff member (password is changed by the person themselves).
  */
 class UpdateEmployeeRequest extends FormRequest
 {
-    // Who may call the endpoint is decided by route middleware (auth, role, head).
-    public function authorize(): bool
+    // Route middleware lets Admin/HR in. Only an Admin may edit an Admin account
+    // or make someone an Admin (EmployeePolicy).
+    public function authorize(): Response
     {
-        return true;
+        $target = Gate::inspect('manage', $this->route('employee'));
+
+        return $target->denied() ? $target : Gate::inspect('grantRole', [Employee::class, (string) $this->input('role')]);
     }
 
     public function rules(): array

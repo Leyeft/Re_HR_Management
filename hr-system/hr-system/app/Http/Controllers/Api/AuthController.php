@@ -34,6 +34,37 @@ class AuthController extends Controller
         return response()->json(['data' => $this->profile($request->user())]);
     }
 
+    // POST /api/auth/token — for API clients (Postman, a mobile app…) instead of the
+    // SPA's cookie: returns a Sanctum token to send as "Authorization: Bearer <token>".
+    public function token(LoginRequest $request): JsonResponse
+    {
+        $request->validate(['device_name' => ['required', 'string', 'max:100']], [
+            'device_name.required' => 'Please name the device or app (e.g. "Postman").',
+        ]);
+
+        $user = User::where('email', $request->input('email'))->first();
+
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+            throw ValidationException::withMessages(['email' => [trans('auth.failed')]]);
+        }
+
+        event(new \Illuminate\Auth\Events\Login('sanctum', $user, false)); // last login + activity log
+
+        return response()->json(['data' => [
+            'token' => $user->createToken($request->input('device_name'))->plainTextToken,
+            'token_type' => 'Bearer',
+            'profile' => $this->profile($user),
+        ]], 201);
+    }
+
+    // DELETE /api/auth/token — revoke the token used for this request.
+    public function revokeToken(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->json(['message' => 'Token revoked.']);
+    }
+
     // POST /api/auth/logout
     public function logout(Request $request): JsonResponse
     {
@@ -94,6 +125,7 @@ class AuthController extends Controller
             // What the SPA should show; the API checks these again on every request.
             'can' => [
                 'manage_staff' => $manages,          // departments, employees, settings, reports
+                'manage_admins' => $user->role === 'admin', // create/edit/remove Admin accounts
                 'sign_off_leave' => $manages,         // HR step of leave approval
                 'approve_department_leave' => $employee?->rank === 'head',
                 'request_leave' => $employee !== null,

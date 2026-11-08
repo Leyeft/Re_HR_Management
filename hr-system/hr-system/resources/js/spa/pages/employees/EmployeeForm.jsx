@@ -10,6 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import Page, { LoadError } from '../../components/Page';
 import { PageLoader } from '../../components/Spinner';
 import useApiForm from '../../hooks/useApiForm';
+import { selectCan } from '../../store/authSlice';
 import { fetchDepartments } from '../../store/departmentsSlice';
 import SkillsEditor from '../../components/SkillsEditor';
 import { createEmployee, fetchEmployee, updateEmployee } from '../../store/employeesSlice';
@@ -70,6 +71,7 @@ function Form({ employee, departments }) {
         skills: (employee?.skills ?? []).map((s) => ({ id: s.id, level: s.level })),
     });
     const allSkills = useSelector((state) => state.skills.items);
+    const can = useSelector(selectCan);
 
     useEffect(() => {
         if (!allSkills.length) dispatch(fetchSkills());
@@ -151,7 +153,8 @@ function Form({ employee, departments }) {
                         <SelectInput id="role" className="mt-1 block w-full" value={data.role} onChange={field('role')}>
                             <option value="employee">Employee — standard access</option>
                             <option value="hr">HR — manages staff and signs off leave</option>
-                            <option value="admin">Admin — full access</option>
+                            {/* Only an Admin can make someone an Admin. */}
+                            {(can.manage_admins || data.role === 'admin') && <option value="admin">Admin — full access</option>}
                         </SelectInput>
                     </Field>
                     <Field

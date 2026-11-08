@@ -11,6 +11,7 @@ import Page, { LoadError } from '../../components/Page';
 import Pagination from '../../components/Pagination';
 import SkillChips from '../../components/SkillChips';
 import { PageLoader } from '../../components/Spinner';
+import { selectCan } from '../../store/authSlice';
 import { fetchEmployee, fetchEmployeeHistory } from '../../store/employeesSlice';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
@@ -23,6 +24,7 @@ export default function EmployeeProfile() {
     const navigate = useNavigate();
     const { item: employee, status, error } = useSelector((state) => state.employees.current);
     const history = useSelector((state) => state.employees.history);
+    const can = useSelector(selectCan);
     const [deleting, setDeleting] = useState(null);
 
     useEffect(() => {
@@ -57,12 +59,17 @@ export default function EmployeeProfile() {
                     <a href={`/reports/employees/${employee.id}/leave-record.pdf`} className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium hover:bg-bg">
                         Download PDF
                     </a>
-                    <Link to={`/employees/${employee.id}/edit`} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
-                        Edit
-                    </Link>
-                    <button type="button" onClick={() => setDeleting(employee)} className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger hover:bg-danger-bg">
-                        Delete
-                    </button>
+                    {/* Only an Admin can change or remove an Admin account. */}
+                    {(u?.role !== 'admin' || can.manage_admins) && (
+                        <>
+                            <Link to={`/employees/${employee.id}/edit`} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
+                                Edit
+                            </Link>
+                            <button type="button" onClick={() => setDeleting(employee)} className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger hover:bg-danger-bg">
+                                Delete
+                            </button>
+                        </>
+                    )}
                 </>
             }
         >
