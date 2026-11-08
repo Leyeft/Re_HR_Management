@@ -3,6 +3,8 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import Avatar from '../components/Avatar';
+import NotificationBell from '../components/NotificationBell';
 import { logout, selectAuth } from '../store/authSlice';
 import { toastSuccess } from '../store/toastSlice';
 
@@ -15,7 +17,13 @@ export const NAV_LINKS = [
     { to: '/approvals', label: 'Approvals', can: 'approve_department_leave', end: true },
     { to: '/approvals/history', label: 'Dept. History', can: 'approve_department_leave' },
     { to: '/hr/leave', label: 'All Leave', can: 'sign_off_leave' },
-    { to: '/settings/leave', label: 'Leave Settings', can: 'manage_staff' },
+];
+
+// Less-used Admin/HR pages: in the user menu on desktop (keeps the top bar short).
+export const ADMIN_LINKS = [
+    { to: '/settings/leave', label: 'Leave settings', can: 'manage_staff' },
+    { to: '/skills', label: 'Skills', can: 'manage_staff' },
+    { to: '/activity', label: 'Activity log', can: 'manage_staff' },
 ];
 
 const desktopLink = ({ isActive }) =>
@@ -37,6 +45,7 @@ export default function AppLayout() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const links = NAV_LINKS.filter((link) => !link.can || can[link.can]);
+    const adminLinks = ADMIN_LINKS.filter((link) => !link.can || can[link.can]);
 
     // Close the phone menu after navigating.
     useEffect(() => setMobileOpen(false), [location.pathname]);
@@ -70,11 +79,13 @@ export default function AppLayout() {
                             </div>
                         </div>
 
-                        {/* User menu (desktop) */}
-                        <div className="hidden lg:ms-6 lg:flex lg:items-center">
-                            <Menu as="div" className="relative">
-                                <MenuButton className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                                    {user.name}
+                        {/* Right side: one bell for every screen size, then the user menu (desktop) or hamburger */}
+                        <div className="flex items-center gap-1 lg:ms-6 lg:gap-2">
+                            <NotificationBell />
+                            <Menu as="div" className="relative hidden lg:block">
+                                <MenuButton className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                                    <Avatar user={user} size="sm" />
+                                    <span className="max-w-40 truncate">{user.name}</span>
                                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fillRule="evenodd" d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z" clipRule="evenodd" />
                                     </svg>
@@ -93,20 +104,35 @@ export default function AppLayout() {
                                         </Link>
                                     </MenuItem>
                                     <MenuItem>
-                                        <button type="button" onClick={signOut} className="block w-full px-4 py-2 text-left text-sm text-content data-[focus]:bg-bg">
+                                        <Link to="/notifications" className="block px-4 py-2 text-sm text-content data-[focus]:bg-bg">
+                                            Notifications
+                                        </Link>
+                                    </MenuItem>
+                                    {adminLinks.length > 0 && (
+                                        <div className="border-t border-line pt-1">
+                                            <p className="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">Administration</p>
+                                            {adminLinks.map((link) => (
+                                                <MenuItem key={link.to}>
+                                                    <Link to={link.to} className="block px-4 py-2 text-sm text-content data-[focus]:bg-bg">
+                                                        {link.label}
+                                                    </Link>
+                                                </MenuItem>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <MenuItem>
+                                        <button type="button" onClick={signOut} className="block w-full border-t border-line px-4 py-2 text-left text-sm text-content data-[focus]:bg-bg">
                                             Sign out
                                         </button>
                                     </MenuItem>
                                 </MenuItems>
                             </Menu>
-                        </div>
 
-                        {/* Hamburger (tablet & phone) */}
-                        <div className="-me-2 flex items-center lg:hidden">
+                            {/* Hamburger (tablet & phone) */}
                             <button
                                 type="button"
                                 onClick={() => setMobileOpen((open) => !open)}
-                                className="inline-flex items-center justify-center rounded-md p-2 text-white/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                                className="-me-2 inline-flex items-center justify-center rounded-md p-2 text-white/80 lg:hidden hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                                 aria-expanded={mobileOpen}
                                 aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                             >
@@ -126,19 +152,23 @@ export default function AppLayout() {
                 {mobileOpen && (
                     <div className="lg:hidden">
                         <div className="space-y-1 pb-3 pt-2">
-                            {links.map((link) => (
+                            {[...links, ...adminLinks].map((link) => (
                                 <NavLink key={link.to} to={link.to} end={link.end} className={mobileLink}>
                                     {link.label}
                                 </NavLink>
                             ))}
                         </div>
                         <div className="border-t border-white/10 pb-1 pt-4">
-                            <div className="px-4">
-                                <div className="text-base font-medium text-white">{user.name}</div>
-                                <div className="text-sm text-white/60">{user.email} · {roleLine}</div>
+                            <div className="flex items-center gap-3 px-4">
+                                <Avatar user={user} size="md" />
+                                <div className="min-w-0">
+                                    <div className="truncate text-base font-medium text-white">{user.name}</div>
+                                    <div className="truncate text-sm text-white/60">{user.email} · {roleLine}</div>
+                                </div>
                             </div>
                             <div className="mt-3 space-y-1">
                                 <NavLink to="/profile" className={mobileLink}>Profile</NavLink>
+                                <NavLink to="/notifications" className={mobileLink}>Notifications</NavLink>
                                 <button
                                     type="button"
                                     onClick={signOut}

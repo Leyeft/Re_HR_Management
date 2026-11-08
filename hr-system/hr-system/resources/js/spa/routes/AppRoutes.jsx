@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
+import ActivityLog from '../pages/ActivityLog';
 import Dashboard from '../pages/Dashboard';
+import Notifications from '../pages/Notifications';
 import Profile from '../pages/Profile';
 import Departments from '../pages/departments/Departments';
 import EmployeeForm from '../pages/employees/EmployeeForm';
@@ -38,6 +40,7 @@ export default function AppRoutes() {
                 <Route element={<AppLayout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/notifications" element={<Notifications />} />
 
                     <Route element={<RequireCan permission="request_leave" />}>
                         <Route path="/leave" element={<MyLeave />} />
@@ -61,6 +64,7 @@ export default function AppRoutes() {
                         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
                         <Route path="/settings/leave" element={<LeaveSettings />} />
                         <Route path="/skills" element={<Skills />} />
+                        <Route path="/activity" element={<ActivityLog />} />
                     </Route>
 
                     <Route path="*" element={<NotFound />} />

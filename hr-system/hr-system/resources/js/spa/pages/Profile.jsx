@@ -1,9 +1,13 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import api from '../api/client';
+import Avatar from '../components/Avatar';
+import { formatDateTime } from '../utils/time';
 import Page, { Card } from '../components/Page';
 import useApiForm from '../hooks/useApiForm';
 import { selectAuth, userUpdated } from '../store/authSlice';
@@ -23,9 +27,13 @@ export default function Profile() {
                     <Item label="Department">{employee?.department?.name ?? '—'}</Item>
                     <Item label="Rank">{employee?.rank_label ?? '—'}</Item>
                 </dl>
-                <p className="mt-4 text-xs text-muted">Role, department and rank are managed by HR.</p>
+                <p className="mt-4 text-xs text-muted">
+                    Role, department and rank are managed by HR.
+                    {user.last_login_at && ` Last sign-in: ${formatDateTime(user.last_login_at)}.`}
+                </p>
             </Card>
 
+            <AvatarCard user={user} />
             <ProfileForm user={user} />
             <PasswordForm />
         </Page>
@@ -38,6 +46,102 @@ function Item({ label, children }) {
             <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
             <dd className="mt-1 font-medium text-content">{children}</dd>
         </div>
+    );
+}
+
+const MAX_BYTES = 2 * 1024 * 1024;
+const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+// Profile photo: pick → preview → upload. The server checks the file again (type, size, real image).
+function AvatarCard({ user }) {
+    const dispatch = useDispatch();
+    const inputRef = useRef(null);
+    const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const [error, setError] = useState(null);
+    const [busy, setBusy] = useState(false);
+
+    // Free the preview's memory when it changes or the page closes.
+    useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
+
+    const choose = (e) => {
+        const picked = e.target.files?.[0];
+        e.target.value = ''; // allow picking the same file again
+        setError(null);
+        if (!picked) return;
+        if (!TYPES.includes(picked.type)) return setError('Please choose a JPG, PNG or WebP photo.');
+        if (picked.size > MAX_BYTES) return setError('The photo can be at most 2 MB.');
+        setFile(picked);
+        setPreview(URL.createObjectURL(picked));
+    };
+
+    const cancel = () => {
+        setFile(null);
+        setPreview(null);
+    };
+
+    const upload = async () => {
+        setBusy(true);
+        setError(null);
+        try {
+            const body = new FormData();
+            body.append('avatar', file);
+            const { data } = await api.post('/profile/avatar', body);
+            dispatch(userUpdated(data.data)); // menu picture updates straight away
+            dispatch(toastSuccess(data.message));
+            cancel();
+        } catch (err) {
+            setError(err.errors?.avatar?.[0] ?? err.message);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const remove = async () => {
+        setBusy(true);
+        try {
+            const { data } = await api.delete('/profile/avatar');
+            dispatch(userUpdated(data.data));
+            dispatch(toastSuccess(data.message));
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Card title="Profile photo" description="JPG, PNG or WebP, up to 2 MB. Shown in the menu and to HR.">
+            <div className="flex flex-wrap items-center gap-6">
+                {preview ? (
+                    <img src={preview} alt="Preview of your new photo" className="h-20 w-20 rounded-full object-cover ring-2 ring-accent" />
+                ) : (
+                    <Avatar user={user} size="lg" />
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                    <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" id="avatar-input" onChange={choose} />
+                    {file ? (
+                        <>
+                            <PrimaryButton type="button" onClick={upload} disabled={busy}>{busy ? 'Uploading…' : 'Save photo'}</PrimaryButton>
+                            <SecondaryButton type="button" onClick={cancel} disabled={busy}>Cancel</SecondaryButton>
+                        </>
+                    ) : (
+                        <>
+                            <SecondaryButton type="button" onClick={() => inputRef.current?.click()} disabled={busy}>
+                                {user.avatar_url ? 'Change photo' : 'Upload photo'}
+                            </SecondaryButton>
+                            {user.avatar_url && (
+                                <button type="button" onClick={remove} disabled={busy} className="px-3 text-sm text-danger hover:underline disabled:opacity-50">
+                                    Remove
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+            {error && <p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
+        </Card>
     );
 }
 

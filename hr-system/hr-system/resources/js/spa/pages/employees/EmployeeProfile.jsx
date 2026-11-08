@@ -4,7 +4,9 @@ import LeaveTypeBadge from '@/Components/LeaveTypeBadge';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import Avatar from '../../components/Avatar';
 import DeleteEmployeeModal from '../../components/DeleteEmployeeModal';
+import { formatDateTime } from '../../utils/time';
 import Page, { LoadError } from '../../components/Page';
 import Pagination from '../../components/Pagination';
 import SkillChips from '../../components/SkillChips';
@@ -68,9 +70,13 @@ export default function EmployeeProfile() {
 
             <section className="rounded-lg bg-white p-6 shadow">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <p className="text-sm text-muted">{u?.email}</p>
-                        <p className="mt-1 font-mono text-sm text-muted">ID: {employee.employee_code}</p>
+                    <div className="flex items-center gap-4">
+                        <Avatar user={u} size="lg" />
+                        <div>
+                            <p className="text-sm text-muted">{u?.email}</p>
+                            <p className="mt-1 font-mono text-sm text-muted">ID: {employee.employee_code}</p>
+                            <p className="mt-1 text-xs text-muted">Last sign-in: {u?.last_login_at ? formatDateTime(u.last_login_at) : 'never'}</p>
+                        </div>
                     </div>
                     <span className="rounded bg-accent-tint px-2 py-1 text-xs font-medium text-accent-text">{employee.rank_label}</span>
                 </div>

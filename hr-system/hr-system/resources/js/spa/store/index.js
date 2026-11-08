@@ -8,6 +8,8 @@ import holidaysReducer from './holidaysSlice';
 import leaveReducer from './leaveSlice';
 import settingsReducer from './settingsSlice';
 import skillsReducer from './skillsSlice';
+import notificationsReducer from './notificationsSlice';
+import activityReducer from './activitySlice';
 import toastReducer from './toastSlice';
 
 /**
@@ -21,6 +23,8 @@ import toastReducer from './toastSlice';
  *   holidays    – public holidays (used to count working days)
  *   settings    – leave rollover policy
  *   skills      – skills employees can have (with a level, via the employee_skill pivot)
+ *   notifications – in-app notifications + unread count (the bell)
+ *   activity    – the audit trail (Admin/HR)
  */
 export const store = configureStore({
     reducer: {
@@ -33,6 +37,8 @@ export const store = configureStore({
         holidays: holidaysReducer,
         settings: settingsReducer,
         skills: skillsReducer,
+        notifications: notificationsReducer,
+        activity: activityReducer,
     },
 });
 

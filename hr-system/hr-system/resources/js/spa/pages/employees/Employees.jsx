@@ -3,6 +3,7 @@ import TextInput from '@/Components/TextInput';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useSearchParams } from 'react-router-dom';
+import Avatar from '../../components/Avatar';
 import DeleteEmployeeModal from '../../components/DeleteEmployeeModal';
 import EmployeeDetailsModal from '../../components/EmployeeDetailsModal';
 import ExportLinks from '../../components/ExportLinks';
@@ -193,7 +194,8 @@ export default function Employees() {
                                     <tr key={e.id} className="border-t border-line">
                                         <td className="p-3 font-mono text-muted">{e.employee_code}</td>
                                         <td className="p-3">
-                                            <button type="button" onClick={() => setViewing(e)} className="font-medium text-primary hover:underline">
+                                            <button type="button" onClick={() => setViewing(e)} className="inline-flex items-center gap-2 font-medium text-primary hover:underline">
+                                                <Avatar user={e.user} size="xs" />
                                                 {e.user?.name}
                                             </button>
                                         </td>

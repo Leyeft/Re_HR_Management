@@ -5,6 +5,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { selectCan } from '../store/authSlice';
+import Avatar from './Avatar';
 import SkillChips from './SkillChips';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
@@ -31,9 +32,12 @@ export default function EmployeeDetailsModal({ employee, onClose }) {
             {employee && (
                 <div className="p-6">
                     <div className="mb-4 flex items-start justify-between gap-3">
-                        <div>
-                            <h2 className="text-lg font-semibold text-content">{employee.user?.name}</h2>
-                            <p className="text-sm text-muted">{employee.user?.email}</p>
+                        <div className="flex items-center gap-3">
+                            <Avatar user={employee.user} size="md" />
+                            <div>
+                                <h2 className="text-lg font-semibold text-content">{employee.user?.name}</h2>
+                                <p className="text-sm text-muted">{employee.user?.email}</p>
+                            </div>
                         </div>
                         <span className="rounded bg-accent-tint px-2 py-1 text-xs font-medium text-accent-text">{employee.rank_label}</span>
                     </div>
