@@ -1,5 +1,5 @@
-// Where the SPA lives. During the move from Inertia it runs under /app;
-// when the old pages are removed this becomes '' (the site root).
-export const BASE_PATH = '/app';
+// Where the SPA lives: the site root. (It ran under /app while moving off Inertia.)
+
+export const BASE_PATH = '';
 
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Crewly';

@@ -63,6 +63,18 @@ class ProfileController extends Controller
         return (new UserResource($user))->additional(['message' => 'Profile photo removed.']);
     }
 
+    // POST /api/profile/verification-email — send (again) the "verify your email" link.
+    public function sendVerification(Request $request): JsonResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Your email is already verified.']);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'We sent a verification link to ' . $request->user()->email . '.']);
+    }
+
     // PUT /api/profile/password
     public function password(UpdatePasswordRequest $request): JsonResponse
     {

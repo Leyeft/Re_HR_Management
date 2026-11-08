@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Password-reset emails link to the React SPA's reset page.
         ResetPassword::createUrlUsing(fn ($user, string $token) => url(
-            '/app/reset-password/' . $token . '?email=' . urlencode($user->getEmailForPasswordReset())
+            '/reset-password/' . $token . '?email=' . urlencode($user->getEmailForPasswordReset())
         ));
     }
 }

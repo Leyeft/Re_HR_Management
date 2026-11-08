@@ -5,13 +5,14 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import Avatar from '../components/Avatar';
 import { formatDateTime } from '../utils/time';
 import Page, { Card } from '../components/Page';
 import useApiForm from '../hooks/useApiForm';
-import { selectAuth, userUpdated } from '../store/authSlice';
-import { toastSuccess } from '../store/toastSlice';
+import { fetchMe, selectAuth, userUpdated } from '../store/authSlice';
+import { toastError, toastSuccess } from '../store/toastSlice';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 
@@ -33,6 +34,7 @@ export default function Profile() {
                 </p>
             </Card>
 
+            <VerifyEmailBanner user={user} />
             <AvatarCard user={user} />
             <ProfileForm user={user} />
             <PasswordForm />
@@ -45,6 +47,48 @@ function Item({ label, children }) {
         <div>
             <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
             <dd className="mt-1 font-medium text-content">{children}</dd>
+        </div>
+    );
+}
+
+// Unverified email: offer to send the link. Coming back from the link (?verified=1)
+// shows a confirmation and refreshes the account so the banner disappears.
+function VerifyEmailBanner({ user }) {
+    const dispatch = useDispatch();
+    const [params, setParams] = useSearchParams();
+    const [sending, setSending] = useState(false);
+    const [sent, setSent] = useState(null);
+
+    useEffect(() => {
+        if (params.get('verified') === '1') {
+            dispatch(toastSuccess('Thanks — your email address is verified.'));
+            dispatch(fetchMe());
+            setParams({}, { replace: true });
+        }
+    }, [params, dispatch, setParams]);
+
+    if (user.email_verified_at) return null;
+
+    const send = async () => {
+        setSending(true);
+        try {
+            const { data } = await api.post('/profile/verification-email');
+            setSent(data.message);
+        } catch (err) {
+            dispatch(toastError(err.message));
+        } finally {
+            setSending(false);
+        }
+    };
+
+    return (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning bg-warning-bg p-4 text-sm text-warning">
+            <span>{sent ?? `Your email address (${user.email}) isn't verified yet.`}</span>
+            {!sent && (
+                <button type="button" onClick={send} disabled={sending} className="rounded-md bg-white px-3 py-1.5 font-medium text-warning shadow-sm hover:bg-bg disabled:opacity-50">
+                    {sending ? 'Sending…' : 'Send verification email'}
+                </button>
+            )}
         </div>
     );
 }

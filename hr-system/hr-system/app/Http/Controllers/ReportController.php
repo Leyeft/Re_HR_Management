@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Api\LeaveFilterRequest;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
@@ -39,9 +40,9 @@ class ReportController extends Controller
 
     /* ===== Leave requests report (All Leave page) ===== */
 
-    public function leave(Request $request, string $format)
+    public function leave(LeaveFilterRequest $request, string $format)
     {
-        $filters = $request->validate(HRLeaveController::filterRules());
+        $filters = $request->safe()->except('per_page');
 
         $leaves = LeaveRequest::with(['employee.user', 'department', 'headApprover', 'hrApprover'])
             ->filter($filters)

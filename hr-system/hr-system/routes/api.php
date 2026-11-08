@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('profile/password', [ProfileController::class, 'password']);
     Route::post('profile/avatar', [ProfileController::class, 'uploadAvatar']);
     Route::delete('profile/avatar', [ProfileController::class, 'deleteAvatar']);
+    Route::post('profile/verification-email', [ProfileController::class, 'sendVerification'])->middleware('throttle:3,1');
 
     // In-app notifications (the bell)
     Route::get('notifications', [NotificationController::class, 'index']);

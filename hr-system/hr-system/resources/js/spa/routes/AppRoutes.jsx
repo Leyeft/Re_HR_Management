@@ -1,4 +1,11 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+
+// /app/employees?x=1 → /employees?x=1
+function LegacyRedirect() {
+    const { '*': rest } = useParams();
+    const { search } = useLocation();
+    return <Navigate to={`/${rest ?? ''}${search}`} replace />;
+}
 import AppLayout from '../layouts/AppLayout';
 import ActivityLog from '../pages/ActivityLog';
 import Dashboard from '../pages/Dashboard';
@@ -30,6 +37,10 @@ import { GuestOnly, RequireAuth, RequireCan } from './guards';
 export default function AppRoutes() {
     return (
         <Routes>
+            {/* Old addresses (Inertia app / the SPA's temporary /app prefix) → the new ones */}
+            <Route path="/app/*" element={<LegacyRedirect />} />
+            <Route path="/dashboard" element={<Navigate to="/" replace />} />
+
             <Route element={<GuestOnly />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
