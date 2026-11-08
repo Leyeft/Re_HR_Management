@@ -1,3 +1,4 @@
+// Styled <select> dropdown in the Crewly theme. Same props as a <select>.
 export default function SelectInput({ className = '', children, ...props }) {
     return (
         <select

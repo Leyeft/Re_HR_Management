@@ -1,3 +1,4 @@
+// Red button for destructive actions (delete, remove all). Same props as a <button>.
 export default function DangerButton({
     className = '',
     disabled,

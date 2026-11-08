@@ -2,16 +2,33 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Concerns\LogsActivity;
-use App\Models\User;
-use App\Models\Department;
 use Illuminate\Support\Carbon;
 
+/**
+ * A member of staff: the HR side of a User account.
+ *
+ * - employee_code: the Employee ID shown everywhere (department id × 100000 + a running number).
+ * - rank: 'employee' or 'head'. A Head approves leave for their department (step 1 of 2).
+ * - date_hired: decides the yearly annual-leave allowance (see "Leave allowance" below).
+ * - Belongs to a User (login) and a Department; has leave requests and skills (pivot with level).
+ * - SoftDeletes: "deleting" hides the person but keeps their history; they can be restored.
+ *
+ * Sections in this file:
+ *   1. Setup (fillable fields, casts, automatic Employee ID)
+ *   2. Lists and lookups (listQuery used by the Employees page and its export)
+ *   3. Relationships
+ *   4. Leave allowance (years of service, tiers, rollover)
+ *   5. Department hierarchy rules (the "last Head" safeguard)
+ *   6. Leave summary (balance by type, used by the dashboard, forms and reports)
+ */
 class Employee extends Model
 {
+    /* ===== 1. Setup ===== */
+
     use HasFactory, LogsActivity, SoftDeletes;
 
     // Name used in the activity log.
@@ -49,6 +66,8 @@ class Employee extends Model
         return $base + $lastSeq + 1;
     }
 
+    /* ===== 2. Lists and lookups ===== */
+
     // Employee list with search/department/rank filters and name sort — shared by the
     // Employees page and its exports, so both always show the same people.
     public static function listQuery(array $filters)
@@ -74,6 +93,8 @@ class Employee extends Model
         'date_of_birth' => 'date:Y-m-d',
         'date_hired' => 'date:Y-m-d',
     ];
+
+    /* ===== 3. Relationships ===== */
 
     // withTrashed: a deleted employee's account is soft-deleted too, but their
     // name must still show on old leave records and reports.
@@ -101,7 +122,7 @@ class Employee extends Model
         return $this->hasMany(LeaveRequest::class);
     }
 
-    /* ===== Annual leave entitlement (based on years of service) ===== */
+    /* ===== 4. Leave allowance (based on years of service) ===== */
 
     // Whole years of service as of $asOf (default: today).
     public function yearsOfService($asOf = null): int
@@ -165,7 +186,7 @@ class Employee extends Model
         return min($unused, Setting::rolloverMaxDays());
     }
 
-    /* ===== Department hierarchy ===== */
+    /* ===== 5. Department hierarchy rules ===== */
 
     // True when this employee is the only Head of their department while other
     // people still work there — removing them would leave nobody to approve leave.
@@ -186,6 +207,8 @@ class Employee extends Model
 
         return ! $otherHeads && $otherStaff;
     }
+
+    /* ===== 6. Leave summary ===== */
 
     // Sick leave allowance per calendar year.
     public const SICK_DAYS_PER_YEAR = 30;
@@ -251,15 +274,4 @@ class Employee extends Model
             ])->values(),
         ];
     }
-    public function getRankLabelAttribute(): string
-{
-    return match ($this->rank) {
-        'employee' => 'Employee',
-        'head' => 'Head of Department',
-        'admin' => 'Admin',
-        'hr' => 'HR',
-        default => ucfirst($this->rank),
-    };
-}
-
 }

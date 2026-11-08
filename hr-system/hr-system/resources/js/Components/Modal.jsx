@@ -1,3 +1,5 @@
+// Pop-up dialog (Headless UI): dims the page, traps keyboard focus, closes on Esc / outside click.
+// Props: show, onClose, maxWidth (sm | md | lg | xl | 2xl), closeable.
 import {
     Dialog,
     DialogPanel,

@@ -1,3 +1,4 @@
+// Activity log page (Admin/HR): the audit trail of who changed what, with filters in the URL.
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import { useEffect, useState } from 'react';

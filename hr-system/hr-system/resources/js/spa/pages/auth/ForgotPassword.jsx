@@ -1,3 +1,4 @@
+// Forgot-password page: asks for the email and sends a reset link (same answer whether or not the account exists).
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';

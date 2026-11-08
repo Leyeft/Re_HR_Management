@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Sign-in form (email + password), used by POST /api/auth/login and /api/auth/token.
+ *
+ * authenticate() checks the password and limits attempts: after 5 wrong tries for the
+ * same email + IP address, sign-in is blocked for a short time (brute-force protection).
+ */
 class LoginRequest extends FormRequest
 {
     /**

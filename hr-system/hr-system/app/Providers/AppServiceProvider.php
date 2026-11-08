@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * App-wide setup that runs on every request:
+ *   - force https links in production
+ *   - record each sign-in (last login + activity log)
+ *   - make password-reset emails link to the SPA's reset page
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**

@@ -1,3 +1,4 @@
+// White outlined button for secondary actions (cancel, back).
 export default function SecondaryButton({
     type = 'button',
     className = '',

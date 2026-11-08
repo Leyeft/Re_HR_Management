@@ -1,3 +1,4 @@
+{{-- PDF: one employee's leave record (profile → Download PDF). Data from ReportController@employee. --}}
 @php use App\Http\Controllers\ReportController as R; @endphp
 @extends('reports.layout')
 

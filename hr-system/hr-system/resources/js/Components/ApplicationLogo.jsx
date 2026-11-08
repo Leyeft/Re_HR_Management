@@ -1,3 +1,4 @@
+// Crewly logo image. `dark` = the light-coloured version for the navy top bar.
 export default function ApplicationLogo({ dark = false, ...props }) {
     return (
         <img

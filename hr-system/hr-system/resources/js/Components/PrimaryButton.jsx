@@ -1,3 +1,4 @@
+// Main navy button (save, submit). Same props as a <button>.
 export default function PrimaryButton({
     className = '',
     disabled,

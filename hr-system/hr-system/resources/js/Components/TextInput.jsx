@@ -1,3 +1,4 @@
+// Styled text input in the Crewly theme. `isFocused` puts the cursor in it when it appears.
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 export default forwardRef(function TextInput(

@@ -1,3 +1,4 @@
+// 404 page: shown by React Router for any address that matches no page.
 import { Link } from 'react-router-dom';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 

@@ -12,6 +12,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 | **Live API** | _Not deployed yet. The API is served under `/api` on the same domain._ |
 | **API documentation** | Postman collection in [`docs/postman/`](docs/postman/) (51 endpoints, each with a real example response) |
 | **Tests** | 169 automated tests. See [TESTING.md](TESTING.md) |
+| **How the code works** | [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md): architecture, one request traced through every file, each feature explained, where to change things |
 
 ---
 

@@ -1,3 +1,4 @@
+// Profile page (everyone): email verification banner, profile photo, name/email, password.
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';

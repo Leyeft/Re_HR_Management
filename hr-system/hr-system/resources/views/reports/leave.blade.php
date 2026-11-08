@@ -1,3 +1,4 @@
+{{-- PDF: Leave Requests Report (All Leave page export). Data from ReportController@leave. --}}
 @php use App\Http\Controllers\ReportController as R; @endphp
 @extends('reports.layout')
 

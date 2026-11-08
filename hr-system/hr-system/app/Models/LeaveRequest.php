@@ -2,11 +2,23 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Concerns\LogsActivity;
 use Illuminate\Support\Carbon;
 
+/**
+ * One leave request.
+ *
+ * - type: 'annual' (counts against the allowance), 'sick' (own 30-day cap, recorded straight
+ *   away) or 'professional' (no limit).
+ * - status flow:  pending_head → pending_hr → approved
+ *                 (rejected at either step, or cancelled by the owner)
+ * - head_approved_by / hr_approved_by: who signed off each step, and when.
+ * - days(): the number of WORKING days (weekends and public holidays don't count).
+ *
+ * The rules for creating and deciding requests live in App\Services\LeaveService.
+ */
 class LeaveRequest extends Model
 {
     use HasFactory, LogsActivity;
