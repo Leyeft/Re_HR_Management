@@ -3,6 +3,10 @@ import AppLayout from '../layouts/AppLayout';
 import ComingSoon from '../pages/ComingSoon';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
+import Departments from '../pages/departments/Departments';
+import EmployeeForm from '../pages/employees/EmployeeForm';
+import EmployeeProfile from '../pages/employees/EmployeeProfile';
+import Employees from '../pages/employees/Employees';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import ResetPassword from '../pages/auth/ResetPassword';
 import NotFound from '../pages/NotFound';
@@ -43,8 +47,11 @@ export default function AppRoutes() {
                     </Route>
 
                     <Route element={<RequireCan permission="manage_staff" />}>
-                        <Route path="/departments" element={<ComingSoon title="Departments" />} />
-                        <Route path="/employees" element={<ComingSoon title="Employees" />} />
+                        <Route path="/departments" element={<Departments />} />
+                        <Route path="/employees" element={<Employees />} />
+                        <Route path="/employees/new" element={<EmployeeForm />} />
+                        <Route path="/employees/:id" element={<EmployeeProfile />} />
+                        <Route path="/employees/:id/edit" element={<EmployeeForm />} />
                         <Route path="/settings/leave" element={<ComingSoon title="Leave Settings" />} />
                     </Route>
 

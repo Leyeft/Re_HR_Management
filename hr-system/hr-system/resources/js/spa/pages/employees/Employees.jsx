@@ -1,0 +1,192 @@
+import SelectInput from '@/Components/SelectInput';
+import TextInput from '@/Components/TextInput';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useSearchParams } from 'react-router-dom';
+import DeleteEmployeeModal from '../../components/DeleteEmployeeModal';
+import EmployeeDetailsModal from '../../components/EmployeeDetailsModal';
+import ExportLinks from '../../components/ExportLinks';
+import Page, { LoadError } from '../../components/Page';
+import Pagination from '../../components/Pagination';
+import Spinner, { PageLoader } from '../../components/Spinner';
+import { fetchDepartments } from '../../store/departmentsSlice';
+import { fetchEmployees } from '../../store/employeesSlice';
+
+const FILTER_KEYS = ['search', 'department', 'rank', 'sort', 'page'];
+
+/**
+ * Employee list (Admin/HR). Search, filters, sort and page live in the URL
+ * (?search=&department=&rank=&sort=&page=) and are applied on the server
+ * (server-side filtering + pagination). Back/forward and shared links keep them.
+ */
+export default function Employees() {
+    const dispatch = useDispatch();
+    const [params, setParams] = useSearchParams();
+    const { items, meta, status, error } = useSelector((state) => state.employees.list);
+    const departments = useSelector((state) => state.departments.items);
+    const [viewing, setViewing] = useState(null);
+    const [deleting, setDeleting] = useState(null);
+
+    const filters = Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) ?? '']));
+    const [search, setSearch] = useState(filters.search);
+    const query = params.toString();
+
+    // Load the list whenever the URL's filters change.
+    const load = () => dispatch(fetchEmployees(Object.fromEntries(params)));
+    useEffect(() => {
+        load();
+    }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!departments.length) dispatch(fetchDepartments());
+    }, [dispatch, departments.length]);
+
+    // Change filters; any filter change goes back to page 1.
+    const update = (changes) => {
+        const next = { ...filters, page: '', ...changes };
+        setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v !== '' && v !== null)));
+    };
+
+    const anyFilter = filters.search || filters.department || filters.rank;
+
+    return (
+        <Page
+            title="Employees"
+            actions={
+                <>
+                    <ExportLinks path="/reports/employees" params={{ search: filters.search, department: filters.department, rank: filters.rank, sort: filters.sort }} />
+                    <Link to="/employees/new" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
+                        + Add employee
+                    </Link>
+                </>
+            }
+        >
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    update({ search });
+                }}
+                className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow md:flex-row md:items-end"
+                role="search"
+            >
+                <label className="flex-1 text-xs font-medium text-muted">
+                    Search
+                    <TextInput type="search" className="mt-1 block w-full text-sm" placeholder="Name or email" value={search} onChange={(e) => setSearch(e.target.value)} />
+                </label>
+                <label className="text-xs font-medium text-muted">
+                    Department
+                    <SelectInput className="mt-1 block w-full text-sm md:w-48" value={filters.department} onChange={(e) => update({ department: e.target.value })}>
+                        <option value="">All departments</option>
+                        {departments.map((d) => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                    </SelectInput>
+                </label>
+                <label className="text-xs font-medium text-muted">
+                    Rank
+                    <SelectInput className="mt-1 block w-full text-sm md:w-40" value={filters.rank} onChange={(e) => update({ rank: e.target.value })}>
+                        <option value="">All ranks</option>
+                        <option value="employee">Employee</option>
+                        <option value="head">Head</option>
+                    </SelectInput>
+                </label>
+                <div className="flex gap-2">
+                    <button type="submit" className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover">Search</button>
+                    {anyFilter && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearch('');
+                                setParams({});
+                            }}
+                            className="rounded-md border border-line bg-white px-4 py-2 text-sm hover:bg-bg"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            </form>
+
+            {status === 'failed' && <LoadError message={error} onRetry={load} />}
+
+            <div className="relative rounded-lg bg-white shadow">
+                {status === 'loading' && items.length > 0 && (
+                    <div className="absolute right-4 top-3"><Spinner className="h-5 w-5 text-primary" label="Updating" /></div>
+                )}
+
+                {status === 'loading' && !items.length ? (
+                    <PageLoader label="Loading employees…" />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-bg text-left text-xs uppercase tracking-wide text-muted">
+                                <tr>
+                                    <th className="p-3">ID</th>
+                                    <th className="p-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => update({ sort: filters.sort === 'desc' ? '' : 'desc' })}
+                                            className="inline-flex items-center gap-1 uppercase hover:text-content"
+                                            aria-label={`Sort by name ${filters.sort === 'desc' ? 'A to Z' : 'Z to A'}`}
+                                        >
+                                            Name {filters.sort === 'desc' ? '↓' : '↑'}
+                                        </button>
+                                    </th>
+                                    <th className="p-3">Email</th>
+                                    <th className="p-3">Department</th>
+                                    <th className="p-3">Rank</th>
+                                    <th className="p-3">Annual leave left</th>
+                                    <th className="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((e) => (
+                                    <tr key={e.id} className="border-t border-line">
+                                        <td className="p-3 font-mono text-muted">{e.employee_code}</td>
+                                        <td className="p-3">
+                                            <button type="button" onClick={() => setViewing(e)} className="font-medium text-primary hover:underline">
+                                                {e.user?.name}
+                                            </button>
+                                        </td>
+                                        <td className="p-3 text-muted">{e.user?.email}</td>
+                                        <td className="p-3">{e.department?.name ?? '—'}</td>
+                                        <td className="p-3">
+                                            <span className={`rounded px-2 py-1 text-xs font-semibold ${e.rank === 'head' ? 'bg-primary text-white' : 'bg-accent-tint text-accent-text'}`}>
+                                                {e.rank === 'head' ? 'Head' : 'Employee'}
+                                            </span>
+                                        </td>
+                                        <td className="p-3">
+                                            {e.leave_summary ? (
+                                                <>
+                                                    <span className="font-medium tabular-nums text-content">{e.leave_summary.annual.remaining}/{e.leave_summary.annual.total}</span>
+                                                    <span className="ms-1 text-xs text-muted">({e.leave_summary.tier})</span>
+                                                </>
+                                            ) : '—'}
+                                        </td>
+                                        <td className="whitespace-nowrap p-3 text-right">
+                                            <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
+                                            <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {status === 'succeeded' && items.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" className="p-6 text-center text-muted">
+                                            {anyFilter ? 'No employees match these filters.' : 'No employees yet.'}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                <div className="px-4 pb-4">
+                    <Pagination meta={meta} onPage={(page) => update({ page: String(page) })} label="employees" />
+                </div>
+            </div>
+
+            <EmployeeDetailsModal employee={viewing} onClose={() => setViewing(null)} />
+            <DeleteEmployeeModal employee={deleting} onClose={() => setDeleting(null)} onDeleted={load} />
+        </Page>
+    );
+}
