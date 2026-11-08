@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import ImportHolidaysModal from '../../components/ImportHolidaysModal';
 import Page, { Card, LoadError } from '../../components/Page';
 import { PageLoader } from '../../components/Spinner';
 import useApiForm from '../../hooks/useApiForm';
@@ -98,6 +99,7 @@ function Holidays() {
     const empty = { date: '', name: '', recurring: false };
     const form = useApiForm(empty);
     const [removing, setRemoving] = useState(null);
+    const [importing, setImporting] = useState(false);
 
     const add = (e) => {
         e.preventDefault();
@@ -123,6 +125,18 @@ function Holidays() {
 
     return (
         <Card title="Public holidays" description="Leave never counts weekends or these days. Example: if Tuesday is a holiday, leave from Monday to Wednesday is 2 days.">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-accent-tint px-4 py-3">
+                <p className="text-sm text-accent-text">Have a list of holidays? Add them all at once from a spreadsheet.</p>
+                <button
+                    type="button"
+                    onClick={() => setImporting(true)}
+                    className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-hover"
+                >
+                    Import from Excel / CSV
+                </button>
+            </div>
+            <ImportHolidaysModal show={importing} onClose={() => setImporting(false)} />
+
             <form onSubmit={add} className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end" noValidate>
                 <div>
                     <InputLabel htmlFor="holiday_date" value="Date" />

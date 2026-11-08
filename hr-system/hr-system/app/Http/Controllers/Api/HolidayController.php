@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ImportHolidaysRequest;
 use App\Http\Requests\Api\StoreHolidayRequest;
+use App\Services\HolidayImportService;
 use App\Http\Resources\HolidayResource;
 use App\Models\Holiday;
 use Illuminate\Http\JsonResponse;
@@ -34,6 +36,25 @@ class HolidayController extends Controller
             ->additional(['message' => 'Holiday added.'])
             ->response()
             ->setStatusCode(201);
+    }
+
+    // POST /api/holidays/import (multipart: file, dry_run) — bulk add from Excel/CSV.
+    // dry_run=1 → preview only (nothing saved); otherwise rows marked "new" are added.
+    public function import(ImportHolidaysRequest $request, HolidayImportService $importer): JsonResponse
+    {
+        if ($request->boolean('dry_run')) {
+            return response()->json(['data' => $importer->preview($request->file('file'))]);
+        }
+
+        $result = $importer->import($request->file('file'));
+        $added = $result['summary']['imported'];
+
+        return response()->json([
+            'data' => $result,
+            'message' => $added
+                ? "Imported {$added} holiday" . ($added === 1 ? '' : 's') . '.'
+                : 'Nothing was imported — no new holidays in the file.',
+        ]);
     }
 
     // DELETE /api/holidays/{holiday}

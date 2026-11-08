@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\HolidayTemplateController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,12 @@ Route::middleware(['auth', 'role:admin,hr'])->prefix('reports')->group(function 
         ->name('reports.employee');
 });
 
+/* ---------- Import templates (Admin/HR) ---------- */
+Route::get('templates/holidays.{format}', HolidayTemplateController::class)
+    ->middleware(['auth', 'role:admin,hr'])
+    ->whereIn('format', ['xlsx', 'csv'])
+    ->name('templates.holidays');
+
 /* ---------- Email verification link (from the email) ---------- */
 Route::get('email/verify/{id}/{hash}', EmailVerificationController::class)
     ->middleware(['signed', 'throttle:6,1'])
@@ -36,5 +43,5 @@ Route::view('login', 'spa')->name('login');
 
 // Any other path (except the API, reports, Sanctum, uploaded files and the health check).
 Route::view('{any?}', 'spa')
-    ->where('any', '^(?!api/|reports/|sanctum/|storage/|up$).*$')
+    ->where('any', '^(?!api/|reports/|templates/|sanctum/|storage/|up$).*$')
     ->name('spa');

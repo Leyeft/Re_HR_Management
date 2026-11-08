@@ -11,7 +11,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 | **Live app** | _Not deployed yet. The URL will be added here._ (see [DEPLOYMENT.md](DEPLOYMENT.md)) |
 | **Live API** | _Not deployed yet. The API is served under `/api` on the same domain._ |
 | **API documentation** | Postman collection in [`docs/postman/`](docs/postman/) (51 endpoints, each with a real example response) |
-| **Tests** | 153 automated tests. See [TESTING.md](TESTING.md) |
+| **Tests** | 164 automated tests. See [TESTING.md](TESTING.md) |
 
 ---
 
@@ -32,7 +32,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 
 **Leave**
 - Three leave types: **annual**, which counts against the allowance; **sick**, recorded immediately with a 30-day yearly cap; and **professional**, which has no limit.
-- Leave is counted in **working days**. Weekends and HR-defined **public holidays** don't count.
+- Leave is counted in **working days**. Weekends and HR-defined **public holidays** don't count. HR can add holidays one at a time or **import them from Excel or CSV**, using a downloadable template and a preview before saving.
 - The **annual allowance** depends on years of service: 3 days (under 1 year), 10 days (1–7 years), 15 days (8–15 years) or 20 days (16+ years). Unused days can **roll over** into the next year if HR switches rollover on, up to a maximum HR sets.
 - Approval happens in **two steps**: Head of Department, then HR. A Head's own leave goes straight to HR.
 - The system refuses requests that exceed the allowance, overlap an existing request, or fall only on weekends or holidays. Employees can cancel their own requests, giving a reason.
@@ -221,11 +221,13 @@ Each request has a saved example response, recorded from the real API.
 | GET, POST, PUT, DELETE | `/skills`, `/skills/{id}` | HR, Admin | Skills CRUD |
 | GET, PUT | `/settings/leave` | HR, Admin | Rollover on/off and maximum days |
 | POST, DELETE | `/holidays`, `/holidays/{id}` | HR, Admin | Add or remove a public holiday |
+| POST | `/holidays/import` | HR, Admin | Bulk-add holidays from Excel/CSV (multipart `file`; `dry_run=1` = preview only) |
 | GET | `/activity` | HR, Admin | Activity log (`search`, `action`, `subject_type`, `user`, `from`, `to`) |
 | **Reports** (web routes, signed in with the session) | | | |
 | GET | `/reports/leave.{csv\|pdf}` | HR, Admin | Leave report with the same filters as `/hr/leave-requests` |
 | GET | `/reports/employees.{csv\|pdf}` | HR, Admin | Employee report with the same filters as `/employees` |
 | GET | `/reports/employees/{id}/leave-record.pdf` | HR, Admin | One employee's leave record |
+| GET | `/templates/holidays.{xlsx\|csv}` | HR, Admin | Template for the holiday import |
 
 ² Only an Admin can change or remove an Admin account.
 

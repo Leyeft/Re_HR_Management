@@ -97,6 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('settings/leave', [LeaveSettingsController::class, 'update']);
 
         Route::post('holidays', [HolidayController::class, 'store']);
+        Route::post('holidays/import', [HolidayController::class, 'import']);
         Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy']);
     });
 });
