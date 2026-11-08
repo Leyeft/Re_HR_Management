@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\ApprovalController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DepartmentController;
@@ -43,6 +45,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('profile', [ProfileController::class, 'update']);
     Route::put('profile/password', [ProfileController::class, 'password']);
+    Route::post('profile/avatar', [ProfileController::class, 'uploadAvatar']);
+    Route::delete('profile/avatar', [ProfileController::class, 'deleteAvatar']);
+
+    // In-app notifications (the bell)
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markRead']);
 
     Route::get('dashboard', DashboardController::class);
 
@@ -76,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('employees/{employee}/restore', [EmployeeController::class, 'restore'])->withTrashed();
         Route::get('employees/{employee}/leave-requests', [EmployeeController::class, 'leaveRequests']);
         Route::apiResource('skills', SkillController::class)->except('show');
+
+        // Audit trail
+        Route::get('activity', [ActivityLogController::class, 'index']);
 
         Route::get('settings/leave', [LeaveSettingsController::class, 'show']);
         Route::put('settings/leave', [LeaveSettingsController::class, 'update']);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\LogsActivity;
 
 /**
  * A skill employees can have (e.g. "First aid", "Excel"). Linked to employees
@@ -11,7 +12,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Skill extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function activityLabel(): string
+    {
+        return $this->name;
+    }
 
     public const LEVELS = ['beginner', 'intermediate', 'expert'];
 

@@ -4,11 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Support\Carbon;
 
 class LeaveRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    // e.g. "#12 (Bobby Lim, 2026-11-23 → 2026-11-25)" in the activity log.
+    public function activityLabel(): string
+    {
+        $who = $this->employee?->user?->name ?? 'unknown';
+
+        return "#{$this->id} ({$who}, {$this->start_date?->format('Y-m-d')} → {$this->end_date?->format('Y-m-d')})";
+    }
 
     protected $fillable = [
         'employee_id',

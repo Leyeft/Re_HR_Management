@@ -5,13 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\LogsActivity;
 use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Carbon;
 
 class Employee extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
+
+    // Name used in the activity log.
+    public function activityLabel(): string
+    {
+        return $this->user?->name ?? "#{$this->id}";
+    }
 
     protected $fillable = [
         'user_id',

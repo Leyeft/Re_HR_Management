@@ -3,12 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\LogsActivity;
 
 /**
  * Simple key/value store for company-wide settings that HR/Admin can edit.
  */
 class Setting extends Model
 {
+    use LogsActivity;
+
+    public function activityLabel(): string
+    {
+        return $this->key;
+    }
+
     protected $primaryKey = 'key';
     public $incrementing = false;
     protected $keyType = 'string';

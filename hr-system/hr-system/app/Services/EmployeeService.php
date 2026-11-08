@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\ActivityLog;
 use App\Models\Employee;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -155,9 +157,20 @@ class EmployeeService
     // Replace the employee's skills: $skills = [['id' => 3, 'level' => 'expert'], …]
     public function syncSkills(Employee $employee, array $skills): void
     {
-        $employee->skills()->sync(
+        $result = $employee->skills()->sync(
             collect($skills)->mapWithKeys(fn ($s) => [(int) $s['id'] => ['level' => $s['level'] ?? 'intermediate']])->all()
         );
+
+        // Pivot changes don't fire model events, so log them here.
+        $changed = array_filter($result);
+        if ($changed && ! $employee->wasRecentlyCreated) {
+            $names = fn (array $ids) => Skill::whereIn('id', $ids)->orderBy('name')->pluck('name')->implode(', ');
+            ActivityLog::record('updated', 'Updated skills of ' . $employee->activityName(), $employee, array_filter([
+                'skills added' => $result['attached'] ? ['old' => null, 'new' => $names($result['attached'])] : null,
+                'skills removed' => $result['detached'] ? ['old' => $names($result['detached']), 'new' => null] : null,
+                'skill levels' => $result['updated'] ? ['old' => null, 'new' => $names($result['updated'])] : null,
+            ]));
+        }
     }
 
     private function ensureHeadIsEmployeeRole(string $role, string $rank): void

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Support\Carbon;
 
 /**
@@ -10,6 +11,13 @@ use Illuminate\Support\Carbon;
  */
 class Holiday extends Model
 {
+    use LogsActivity;
+
+    public function activityLabel(): string
+    {
+        return "{$this->name} ({$this->date?->format('Y-m-d')})";
+    }
+
     protected $fillable = ['date', 'name', 'recurring'];
 
     protected $casts = [

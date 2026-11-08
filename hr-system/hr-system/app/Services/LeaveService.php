@@ -6,7 +6,10 @@ use App\Exceptions\BusinessRuleException;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\User;
+use App\Notifications\LeaveUpdate;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Leave rules in one place: submitting, the two-step approval
@@ -69,7 +72,7 @@ class LeaveService
             ), 'not_enough_leave');
         }
 
-        return LeaveRequest::create([
+        $leave = LeaveRequest::create([
             'employee_id' => $employee->id,
             'department_id' => $employee->department_id,
             'type' => $type,
@@ -78,6 +81,16 @@ class LeaveService
             'reason' => $data['reason'],
             'status' => $this->firstStatus($employee, $type),
         ]);
+
+        // Tell whoever acts next (sick leave is recorded straight away, so nobody needs to).
+        $actor = $employee->user;
+        match ($leave->status) {
+            'pending_head' => $this->notify($this->headsOf($leave->department_id, $actor), $leave, 'submitted', $actor),
+            'pending_hr' => $this->notify($this->hrStaff($actor), $leave, 'needs_hr', $actor),
+            default => null,
+        };
+
+        return $leave;
     }
 
     // Sick leave is recorded straight away. A Head can't approve their own leave, and a
@@ -109,6 +122,8 @@ class LeaveService
             'head_approved_at' => now(),
         ]);
 
+        $this->notify($this->hrStaff($head), $leave, 'needs_hr', $head);
+
         return $leave;
     }
 
@@ -117,6 +132,8 @@ class LeaveService
         $this->ensureHeadCanAct($head, $leave);
 
         $leave->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+
+        $this->notifyOwner($leave, 'rejected', $head);
 
         return $leave;
     }
@@ -147,6 +164,8 @@ class LeaveService
             'hr_approved_at' => now(),
         ]);
 
+        $this->notifyOwner($leave, 'approved', $hr);
+
         return $leave;
     }
 
@@ -160,6 +179,8 @@ class LeaveService
             'hr_approved_by' => $hr->id,
             'hr_approved_at' => now(),
         ]);
+
+        $this->notifyOwner($leave, 'rejected', $hr);
 
         return $leave;
     }
@@ -188,8 +209,48 @@ class LeaveService
             throw new BusinessRuleException('This request can no longer be cancelled.', 'wrong_stage');
         }
 
+        $wasStatus = $leave->status;
         $leave->update(['status' => 'cancelled', 'cancellation_reason' => $reason]);
 
+        // The Head if it was waiting for them; otherwise HR (pending or already approved).
+        $this->notify(
+            $wasStatus === 'pending_head' ? $this->headsOf($leave->department_id, $user) : $this->hrStaff($user),
+            $leave, 'cancelled', $user,
+        );
+
         return $leave;
+    }
+
+    /* ===== Notifications (in-app) ===== */
+
+    private function notify(Collection $users, LeaveRequest $leave, string $event, ?User $actor): void
+    {
+        if ($users->isNotEmpty()) {
+            Notification::send($users, new LeaveUpdate($leave, $event, $actor?->name));
+        }
+    }
+
+    private function notifyOwner(LeaveRequest $leave, string $event, User $actor): void
+    {
+        $owner = $leave->employee?->user;
+        if ($owner && $owner->id !== $actor->id) {
+            $owner->notify(new LeaveUpdate($leave, $event, $actor->name));
+        }
+    }
+
+    // Heads of a department (never the person who triggered it).
+    private function headsOf(int $departmentId, ?User $except): Collection
+    {
+        return User::whereHas('employee', fn ($q) => $q->where('department_id', $departmentId)->where('rank', 'head'))
+            ->when($except, fn ($q) => $q->whereKeyNot($except->id))
+            ->get();
+    }
+
+    // Everyone who can give the final sign-off: HR and Admin.
+    private function hrStaff(?User $except): Collection
+    {
+        return User::whereIn('role', ['hr', 'admin'])
+            ->when($except, fn ($q) => $q->whereKeyNot($except->id))
+            ->get();
     }
 }
