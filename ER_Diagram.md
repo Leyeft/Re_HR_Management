@@ -1,51 +1,13 @@
-# HR Management System – ER Diagram
+# Crewly — ER Diagram
 
-## 1. Overview
-This document describes the Entity–Relationship (ER) Diagram for the HR Management System.  
-It explains the core database entities, their attributes, and how they relate to each other.  
-The design supports employee management, department structure, and leave request workflows.
+The full, current Entity–Relationship Diagram is in the README:
+**[README → Database (ERD)](README.md#database-erd)**.
 
----
+It covers all 10 application tables:
+- users, departments, employees, leave_requests
+- skills and the employee_skill pivot
+- holidays, settings, activity_logs and notifications
 
-## 2. ER Diagram (Mermaid)
+It also shows the self-referencing `departments.parent_id`, the soft deletes, and what happens on delete.
 
-```mermaid
-erDiagram
-    USER ||--o| EMPLOYEE : has
-    DEPARTMENT ||--o{ EMPLOYEE : contains
-    EMPLOYEE ||--o{ LEAVE_REQUEST : submits
-    DEPARTMENT ||--o{ LEAVE_REQUEST : manages
-
-    USER {
-        int id PK
-        string name
-        string email
-        string password
-        string role
-    }
-
-    EMPLOYEE {
-        int id PK
-        int user_id FK
-        int department_id FK
-        string rank
-        date date_of_birth
-    }
-
-    DEPARTMENT {
-        int id PK
-        string name
-        string description
-    }
-
-    LEAVE_REQUEST {
-        int id PK
-        int employee_id FK
-        int department_id FK
-        date start_date
-        date end_date
-        string reason
-        string status
-        string rejection_reason
-        datetime created_at
-    }
+The diagram previously in this file showed only the first four tables of the original Blade version.
