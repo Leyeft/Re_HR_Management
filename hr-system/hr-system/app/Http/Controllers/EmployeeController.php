@@ -7,7 +7,8 @@ use App\Models\User;
 use App\Models\Employee;
 use App\Models\Department;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Exceptions\BusinessRuleException;
+use App\Services\EmployeeService;
 
 class EmployeeController extends Controller
 {
@@ -72,30 +73,13 @@ class EmployeeController extends Controller
         'date_hired' => 'required|date',
     ]);
 
-    // ❌ Block invalid combinations
-    if ($request->role !== 'employee' && $request->rank === 'head') {
-        return back()->withErrors([
-            'rank' => 'Only employees can be Head of Department.',
-        ])->withInput();
+    try {
+        app(EmployeeService::class)->create($request->only(
+            'name', 'email', 'password', 'role', 'rank', 'department_id', 'date_of_birth', 'date_hired'
+        ));
+    } catch (BusinessRuleException $e) {
+        return back()->withErrors($e->errors ?: ['rank' => $e->getMessage()])->withInput();
     }
-
-    // Create user
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => $request->role, // ✅ FIXED
-    ]);
-
-    // Create employee with an auto-generated, department-based code.
-    Employee::create([
-        'user_id' => $user->id,
-        'department_id' => $request->department_id,
-        'employee_code' => Employee::generateCode((int) $request->department_id),
-        'rank' => $request->rank,
-        'date_of_birth' => $request->date_of_birth,
-        'date_hired' => $request->date_hired,
-    ]);
 
     return redirect()
         ->route('employees.index')
@@ -145,51 +129,13 @@ class EmployeeController extends Controller
             'date_hired' => 'required|date',
         ]);
 
-        $user = $employee->user;
-
-        // Same rule as on create: HR/Admin accounts can't also be a Head.
-        if ($request->role !== 'employee' && $request->rank === 'head') {
-            return back()->withErrors([
-                'rank' => 'Only employees can be Head of Department.',
-            ])->withInput();
+        try {
+            app(EmployeeService::class)->update($employee, $request->only(
+                'name', 'email', 'role', 'rank', 'department_id', 'date_of_birth', 'date_hired'
+            ));
+        } catch (BusinessRuleException $e) {
+            return back()->withErrors($e->errors ?: ['rank' => $e->getMessage()])->withInput();
         }
-
-        // Don't let a role change remove the last Admin or the last HR.
-        foreach (['admin' => 'Admin', 'hr' => 'HR'] as $role => $label) {
-            if ($user->role === $role && $request->role !== $role
-                && User::where('role', $role)->count() <= 1) {
-                return back()->withErrors([
-                    'role' => "This is the only {$label} account. Give another person the {$label} role first.",
-                ])->withInput();
-            }
-        }
-
-        // Don't leave a department without a Head while it still has staff
-        // (their leave requests would have nobody to approve them).
-        $stopsBeingHead = $request->rank !== 'head'
-            || (int) $request->department_id !== $employee->department_id;
-
-        if ($stopsBeingHead && $employee->isLastHeadWithStaff()) {
-            return back()->withErrors([
-                'rank' => 'This is the only Head of ' . $employee->department->name
-                    . '. Make someone else in that department Head first.',
-            ])->withInput();
-        }
-
-        // Update user info
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ]);
-
-        // Update employee info
-        $employee->update([
-            'department_id' => $request->department_id,
-            'rank' => $request->rank,
-            'date_of_birth' => $request->date_of_birth,
-            'date_hired' => $request->date_hired,
-        ]);
 
         return redirect()
             ->route('employees.index')
@@ -201,27 +147,11 @@ class EmployeeController extends Controller
      * ======================= */
     public function destroy(Employee $employee)
     {
-        $user = $employee->user;
-
-        // Never leave the system without an HR account to sign off leave.
-        if ($user->role === 'hr' && User::where('role', 'hr')->count() <= 1) {
-            return back()->with('error', '🛡️ "A knight never strikes the last healer." ’Tis the final HR of the kingdom! Slay them, and who shall tend the wounded spirits of the payroll-stricken? Assign another HR first.');
+        try {
+            app(EmployeeService::class)->delete($employee);
+        } catch (BusinessRuleException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Never leave the system without an admin to run it.
-        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
-            return back()->with('error', '👑 "The crown cannot be left upon an empty throne!" Thou wouldst dethrone the last admin of this realm? Crown a worthy heir first, lest the castle gates lock forever (and nobody gets paid on Friday).');
-        }
-
-        // Never leave a department with staff but no Head to approve their leave.
-        if ($employee->isLastHeadWithStaff()) {
-            return back()->with('error', '⚔️ "A castle without a lord falls by nightfall!" This is the only Head of '
-                . $employee->department->name . '. Crown a new Head for that department first, '
-                . 'or their leave requests shall wander the halls forever.');
-        }
-
-        // This will also delete the employee row due to cascade.
-        $user->delete();
 
         return redirect()
             ->route('employees.index')
