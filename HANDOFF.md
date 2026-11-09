@@ -112,6 +112,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **GitHub Classroom repo:** the brief's deliverable is the Classroom link (`origin` remote), but **pushing there fails with 403**, and it only has the old Blade version. Ask the teacher to fix access, or to accept the personal repo.
 
 **Suggested next tasks (not done yet):**
+- **Certificate uploads** (user request, 2026-11-09, parked as future development; it is in the README's "Future development" section). Before building it, ask the user about the open questions listed there. Storage matters: the Railway volume only covers `storage/app/public`, so private files would be lost on redeploy unless the volume mount moves to `/app/storage/app` or the files go in the database.
 - Set `baseUrl` in a Postman environment for the live site (the README already has the live URLs).
 - Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet.
 - **Real email** on the live site (password reset, verification): currently `MAIL_MAILER=log`. Needs a mail service account (Mailtrap, Resend or Gmail SMTP) created by the user.

@@ -25,7 +25,8 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 5. [API](#api)
 6. [Database (ERD)](#database-erd)
 7. [Project structure](#project-structure)
-8. [AI assistance](#ai-assistance)
+8. [Future development](#future-development)
+9. [AI assistance](#ai-assistance)
 
 ---
 
@@ -434,6 +435,16 @@ hr-system/hr-system/
 ├── routes/api.php, web.php
 └── tests/                      Unit + Feature (API) tests
 ```
+
+---
+
+## Future development
+
+Planned features that are not built yet:
+
+- **Certificate uploads.** Employees upload a PDF certificate for an achievement or training (title, issuer, date earned, optional expiry) on their profile. The plan:
+  - Files are stored **privately**, not in the public folder like profile photos, and downloaded only through an API route that checks who is asking.
+  - Open questions: whether HR verifies each certificate (Pending / Verified / Rejected, like leave requests), who can view them (owner, their Head, HR, Admin), and where the files live on the hosted site, which only keeps the public storage folder between deploys today.
 
 ---
 
