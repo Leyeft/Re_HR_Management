@@ -1,4 +1,4 @@
-// Profile page (everyone): email verification banner, profile photo, name/email, password.
+// Profile page (everyone): email verification banner, profile photo, name/email, and a link to change the password.
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -6,7 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import Avatar from '../components/Avatar';
 import { formatDateTime } from '../utils/time';
@@ -40,7 +40,7 @@ export default function Profile() {
             <VerifyEmailBanner user={user} />
             <AvatarCard user={user} />
             <ProfileForm user={user} />
-            <PasswordForm />
+            <PasswordLink />
         </Page>
     );
 }
@@ -230,43 +230,19 @@ function ProfileForm({ user }) {
     );
 }
 
-function PasswordForm() {
-    const dispatch = useDispatch();
-    const empty = { current_password: '', password: '', password_confirmation: '' };
-    const form = useApiForm(empty);
-
-    const submit = (e) => {
-        e.preventDefault();
-        form.submit((data) => api.put('/profile/password', data), {
-            onSuccess: () => {
-                form.reset(empty);
-                dispatch(toastSuccess('Password changed.'));
-            },
-            onError: () => form.setData({ password: '', password_confirmation: '' }),
-        });
-    };
-
+// The password form has its own page (ChangePassword.jsx); here is just the link to it.
+function PasswordLink() {
     return (
-        <Card title="Change password" description="Use at least 8 characters.">
-            <form onSubmit={submit} className="space-y-4" noValidate>
+        <Card>
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <InputLabel htmlFor="current_password" value="Current password" />
-                    <TextInput id="current_password" type="password" className="mt-1 block w-full" value={form.data.current_password} onChange={form.field('current_password')} autoComplete="current-password" />
-                    <InputError message={form.errors.current_password} className="mt-1" />
+                    <h3 className="text-lg font-medium text-content">Password</h3>
+                    <p className="mt-1 text-sm text-muted">Change the password you sign in with.</p>
                 </div>
-                <div>
-                    <InputLabel htmlFor="password" value="New password" />
-                    <TextInput id="password" type="password" className="mt-1 block w-full" value={form.data.password} onChange={form.field('password')} autoComplete="new-password" />
-                    <InputError message={form.errors.password} className="mt-1" />
-                </div>
-                <div>
-                    <InputLabel htmlFor="password_confirmation" value="Confirm new password" />
-                    <TextInput id="password_confirmation" type="password" className="mt-1 block w-full" value={form.data.password_confirmation} onChange={form.field('password_confirmation')} autoComplete="new-password" />
-                </div>
-                <div className="flex justify-end">
-                    <PrimaryButton disabled={form.processing}>{form.processing ? 'Saving…' : 'Change password'}</PrimaryButton>
-                </div>
-            </form>
+                <Link to="/profile/password" className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-content hover:bg-bg">
+                    Change password
+                </Link>
+            </div>
         </Card>
     );
 }

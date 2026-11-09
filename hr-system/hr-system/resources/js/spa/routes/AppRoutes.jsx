@@ -10,6 +10,7 @@ import AppLayout from '../layouts/AppLayout';
 import ActivityLog from '../pages/ActivityLog';
 import Dashboard from '../pages/Dashboard';
 import Notifications from '../pages/Notifications';
+import ChangePassword from '../pages/ChangePassword';
 import Profile from '../pages/Profile';
 import Departments from '../pages/departments/Departments';
 import EmployeeForm from '../pages/employees/EmployeeForm';
@@ -51,6 +52,7 @@ export default function AppRoutes() {
                 <Route element={<AppLayout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile/password" element={<ChangePassword />} />
                     <Route path="/notifications" element={<Notifications />} />
 
                     <Route element={<RequireCan permission="request_leave" />}>

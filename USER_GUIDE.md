@@ -149,7 +149,7 @@ Open **Profile** from the menu under your name.
 
 ### Change your password
 
-In **Profile**, enter your current password and the new one twice. It must be at least 8 characters.
+In **Profile**, click **Change password**. On that page, enter your current password and the new one twice, then click **Change password**. It must be at least 8 characters.
 
 ### Forgot your password
 

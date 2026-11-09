@@ -12,7 +12,7 @@ class SpaShellTest extends TestCase
 {
     public function test_any_page_path_serves_the_spa(): void
     {
-        foreach (['/', '/login', '/employees/5', '/leave/new', '/does/not/exist'] as $path) {
+        foreach (['/', '/login', '/employees/5', '/leave/new', '/profile/password', '/does/not/exist'] as $path) {
             $this->get($path)
                 ->assertOk()
                 ->assertSee('<div id="root"></div>', false);
