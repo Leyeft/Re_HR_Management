@@ -59,7 +59,7 @@ Open the site and sign in with your work email and password. There is **no publi
 
 ### Light and dark mode
 
-Open the menu under your name and choose **Light**, **Dark** or **System**. System follows your device. Your browser remembers the choice.
+Open the menu under your name and choose **Light**, **Dark** or **System**. System follows your device. Your choice is remembered for **you** on this browser. When nobody is signed in, the sign-in page follows the device, so the next person on the same computer doesn't get your theme.
 
 ---
 
