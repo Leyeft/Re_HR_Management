@@ -2,7 +2,7 @@
 
 _Last updated: 2026-11-09_
 
-Crewly is tested at four levels: unit, integration, system and security. All **182 automated tests pass**: 31 unit tests and 151 integration (API) tests. System tests are run by hand in the browser.
+Crewly is tested at four levels: unit, integration, system and security. All **184 automated tests pass**: 31 unit tests and 153 integration (API) tests. System tests are run by hand in the browser.
 
 ```
 cd hr-system\hr-system
@@ -35,7 +35,7 @@ Load and stress testing is out of scope, because the system serves one company's
 | Level | What is tested | How | Count |
 | --- | --- | --- | --- |
 | Unit | Single business rules (allowance tiers, working days, settings, employee IDs) | PHPUnit, automated | 31 |
-| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 151 |
+| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 153 |
 | System | Complete user tasks in the real app, from login to result | Manual, in the browser | 21 cases |
 | Security | Who can see and do what; protection of key accounts; safe sign-in, uploads and exports | Part of the integration tests, plus manual checks | 31 |
 
@@ -117,7 +117,7 @@ Every defect found during review and testing is logged with an ID, its severity 
 
 ## 4.4.4.2 Integration Tests
 
-All 151 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
+All 153 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
 
 | Test file | Module | What is verified | Tests | Result |
 | --- | --- | --- | --- | --- |
@@ -126,7 +126,7 @@ All 151 integration tests pass. Each one sends a real HTTP request to the REST A
 | `Api/LeaveApiTest` | Leave flow | Submit returns 201 with working days; Employee → Head → HR → Approved over the API; business-rule codes; custom validation messages; Head/HR endpoints refuse employees; Head of another department can't approve; reject needs a reason; only the owner cancels; own list is paginated and private; HR filters | 12 | Pass |
 | `Api/LeaveRulesApiTest` | Leave rules | Head's own leave and a Head-less department go to HR; weekends and holidays don't count; holiday-only and overlapping requests refused; cancelling frees the dates; sick leave only in the past and auto-approved; annual leave not in the past; professional leave unlimited; accounts without an employee record | 11 | Pass |
 | `Api/StaffApiTest` | Departments, employees, settings | Staff endpoints refuse employees; department and employee CRUD; duplicate names; department with staff can't be deleted; dropdown list; filters and pagination; last Admin / last Head codes; HR can't be Head; leave history; settings round trip; holidays; dashboard scoped by role | 13 | Pass |
-| `Api/EmployeeRulesApiTest` | Safeguards and roles | Last Admin / last HR can't be demoted or deleted; last Head can't be demoted or moved while the department has staff; **only an Admin can create, edit or remove Admins or grant the Admin role**; HR manages everyone else; unique email; demo seeder builds the company and re-runs safely | 14 | Pass |
+| `Api/EmployeeRulesApiTest` | Safeguards and roles | Last Admin / last HR can't be demoted or deleted; last Head can't be demoted or moved while the department has staff; **only an Admin can create, edit or remove Admins or grant the Admin role**; HR manages everyone else; unique email; demo seeder builds the company; **seeding again never undoes HR changes** (renamed departments, deleted skills, cleared holidays) and does nothing once accounts exist | 16 | Pass |
 | `Api/DataIntegrityApiTest` | Hierarchy, skills, soft deletes, factories | Parent departments; no loops; deleting a parent moves children up; soft delete cancels pending leave, keeps history, blocks sign-in, restores; restore needs the department; IDs never reused; deleted names point to restore; skills CRUD, levels, sync, filter, cascade; factories | 17 | Pass |
 | `Api/NotificationsActivityAvatarTest` | Notifications, activity log, avatars | Each leave step notifies the right person (never the actor); rejection includes the reason; list / count / mark read; can't read someone else's notification; changes logged with who and old → new; passwords never logged; sign-ins logged with last login; skill changes logged; activity filters and access; avatar upload replaces the old file; unsafe files refused | 12 | Pass |
 | `Api/HolidayImportTest` | Holiday upload and clear all | CSV and real Excel files (date cells); dd/mm/yyyy and ";" CSVs; preview saves nothing; a second upload replaces same dates, adds new ones and keeps the rest; re-uploading changes nothing; duplicate and invalid rows reported and skipped; refused files; clear all (one log line, days count again); employees can't import or clear; both templates download and import as they are | 17 | Pass |

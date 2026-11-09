@@ -11,7 +11,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 | **Live app** | **https://rehrmanagement-production.up.railway.app** (hosted on Railway, see [DEPLOYMENT.md](DEPLOYMENT.md)) |
 | **Live API** | **https://rehrmanagement-production.up.railway.app/api** (same domain; e.g. `/up` is the health check) |
 | **API documentation** | Postman collection in [`docs/postman/`](docs/postman/) (51 endpoints, each with a real example response) |
-| **Tests** | 182 automated tests. See [TESTING.md](TESTING.md) |
+| **Tests** | 184 automated tests. See [TESTING.md](TESTING.md) |
 | **How the code works** | [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md): architecture, one request traced through every file, each feature explained, where to change things |
 
 ---

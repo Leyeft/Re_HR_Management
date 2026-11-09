@@ -81,7 +81,7 @@ If the domain variable stays empty, generate the domain first (step 2), or paste
 php artisan migrate --force && php artisan db:seed --force
 ```
 
-After the first successful deploy you can clear this field. The seeder is safe to run again, but it isn't needed.
+After the first successful deploy you can change this field to just `php artisan migrate --force`. Leaving `db:seed` in is harmless: the demo seeder only builds data on an **empty** database, so later deploys never undo changes made in the app (such as a renamed department).
 
 **6. Deploy.** Click **Deploy**, or push to `main`. Watch **Deployments → View logs**. Then run the checks in [section 6](#6-after-the-first-deploy-checks) below.
 

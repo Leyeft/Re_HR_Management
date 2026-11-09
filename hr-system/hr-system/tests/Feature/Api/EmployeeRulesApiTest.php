@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Holiday;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -184,5 +185,34 @@ class EmployeeRulesApiTest extends TestCase
 
         $this->seed();
         $this->assertSame(20, Employee::count()); // nothing duplicated
+    }
+
+    // Railway runs db:seed on every deploy: it must never undo what HR changed.
+    public function test_seeding_again_does_not_undo_hr_changes(): void
+    {
+        $this->seed();
+
+        Department::where('name', 'IT Support')->update(['name' => 'IT']);
+        Skill::where('name', 'Plumbing')->first()->delete();
+        Holiday::query()->delete();
+        $departments = Department::count();
+
+        $this->seed();
+
+        $this->assertSame($departments, Department::count());
+        $this->assertFalse(Department::where('name', 'IT Support')->exists());
+        $this->assertTrue(Department::where('name', 'IT')->exists());
+        $this->assertFalse(Skill::where('name', 'Plumbing')->exists());
+        $this->assertSame(0, Holiday::count());
+    }
+
+    public function test_seeder_does_nothing_on_a_database_that_already_has_accounts(): void
+    {
+        $this->makeEmployee(['role' => 'admin']);
+
+        $this->seed();
+
+        $this->assertSame(1, User::count());
+        $this->assertFalse(Department::where('name', 'IT Support')->exists());
     }
 }

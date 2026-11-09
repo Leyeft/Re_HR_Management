@@ -14,7 +14,7 @@ Read this first when picking the project up. It says where things are, what's do
 | **Code** | `hr-system/hr-system/` inside this repo |
 | **Repo / branch** | `github.com/Leyeft/Re_HR_Management`, branch **`main`** (git remote `personal`). Local `main` tracks `personal/main`. `react-frontend` is an old branch, identical to an earlier `main`; it can be deleted |
 | **Live site** | **https://rehrmanagement-production.up.railway.app** (Railway). It redeploys automatically on every push to `main` |
-| **Tests** | **182 passing**: 31 unit + 151 API feature tests (`php artisan test`) |
+| **Tests** | **184 passing**: 31 unit + 153 API feature tests (`php artisan test`) |
 | **Course brief** | `hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`. **Deliberately left untracked**: never commit it, because `public/` is served to the web |
 | **Estimated grade vs. brief** | About 83–90%, if the defense goes well (see section 5) |
 
@@ -28,7 +28,7 @@ Read this first when picking the project up. It says where things are, what's do
 cd C:\laragon\www\HR_Management\final-project-Leyeft-1\hr-system\hr-system
 php artisan serve          # → http://127.0.0.1:8000
 npm run dev                # second terminal, only while editing React (or: npm run build)
-php artisan test           # 182 tests, SQLite in memory, ~1 min
+php artisan test           # 184 tests, SQLite in memory, ~1 min
 ```
 
 - **Database:** MySQL `hr_system` (Laragon, root, no password). All migrations have run locally.
@@ -60,7 +60,7 @@ These were set up by the user in the Railway dashboard, with guidance. The full 
   - `LOG_CHANNEL=stderr`, `MAIL_MAILER=log`, `AVATAR_DISK=public`
   - `DEMO_PASSWORD` (private)
   - `RAILPACK_PHP_VERSION=8.4`
-- **Pre-Deploy Command:** `php artisan migrate --force && php artisan db:seed --force`. It was used for the first deploy. **It can be cleared now.** It's harmless to leave, because the seeder is idempotent.
+- **Pre-Deploy Command:** `php artisan migrate --force && php artisan db:seed --force`. It was used for the first deploy. It can be shortened to `php artisan migrate --force`, but leaving `db:seed` is harmless: since 2026-11-09 the DemoSeeder **only runs on an empty database** (no accounts). Before that fix, every deploy re-created renamed departments, deleted skills and cleared holidays. The user had renamed "IT Support" to "IT" and got a new empty "IT Support" back, which they should delete in the app.
 - **Railpack** auto-detects Laravel, runs Composer, `npm run build`, migrations and `storage:link` on start, and serves with FrankenPHP. Railway's `railway.json` config files are **deprecated**, which is why all settings are in the dashboard.
 - **Fixed during deploy:** `composer.json` now requires `php ^8.4`, because the locked packages need 8.4. This was merged from Railway's PR #1. It also declares `ext-pdo_mysql`, `ext-gd` and `ext-zip`, so Railpack installs them.
 - **Verified live:** `/up` 200, SPA loads, API 401 shape, DB connected, secure cookies, http→https.

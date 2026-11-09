@@ -16,18 +16,23 @@ use Illuminate\Support\Facades\Hash;
  * Sample data for demos: departments, an Admin, an HR officer, a Head for each
  * department, regular employees and leave requests in every status.
  *
- * Every account's password is "password".
- * Safe to re-run: existing accounts (matched by email) are left untouched.
+ * Every account's password is "password" (or DEMO_PASSWORD on a public server).
  *
- *   php artisan migrate:fresh --seed     (wipes the database first)
- *   php artisan db:seed                  (adds whatever is missing)
+ * Runs only on an EMPTY database. As soon as any account exists it does nothing,
+ * so running it again (e.g. a host that seeds on every deploy) never undoes what
+ * HR changed: renamed or deleted departments and skills, cleared holidays, and so on.
+ *
+ *   php artisan migrate:fresh --seed     (wipes the database, then builds the demo company)
  */
 class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        // Factory-made extra staff are only added on a fresh install, so re-running is safe.
-        $freshInstall = ! User::withTrashed()->where('email', 'admin@test.com')->exists();
+        if (User::withTrashed()->exists()) {
+            $this->command?->info('Demo data skipped: the database already has accounts.');
+
+            return;
+        }
 
         $departments = collect([
             'Human Resources' => 'Hiring, records and leave sign-off.',
@@ -79,16 +84,23 @@ class DemoSeeder extends Seeder
         // "password" locally; set DEMO_PASSWORD on a public server (config/app.php → demo_password).
         $passwordHash = Hash::make(config('app.demo_password'));
 
+        // Monthly salaries (THB) for the demo staff.
+        $salaries = [
+            'admin@test.com' => 85000, 'hr@test.com' => 55000,
+            'james@test.com' => 60000, 'itsupport@test.com' => 52000,
+            'housekeep@test.com' => 40000, 'maintain@test.com' => 42000,
+            'bobby@test.com' => 32000, 'fiona@test.com' => 26000,
+            'jackie@test.com' => 38000, 'kevin@test.com' => 28000,
+            'lara@test.com' => 22000, 'noel@test.com' => 30000,
+        ];
+
         foreach ($people as [$name, $email, $role, $deptName, $rank, $yearsAgo]) {
-            $user = User::firstOrCreate(['email' => $email], [
+            $user = User::create([
                 'name' => $name,
+                'email' => $email,
                 'password' => $passwordHash,
                 'role' => $role,
             ]);
-
-            if ($user->employee) {
-                continue; // already set up — don't touch it
-            }
 
             $dept = $departments[$deptName];
 
@@ -99,23 +111,8 @@ class DemoSeeder extends Seeder
                 'rank' => $rank,
                 'date_of_birth' => now()->subYears(25 + $yearsAgo)->subDays(40)->toDateString(),
                 'date_hired' => now()->subYears($yearsAgo)->subMonths(2)->toDateString(),
+                'salary' => $salaries[$email],
             ]);
-        }
-
-        // Monthly salaries (THB) for the demo staff. Only fills empty ones, so it is safe
-        // to run again and never overwrites a salary HR has set.
-        $salaries = [
-            'admin@test.com' => 85000, 'hr@test.com' => 55000,
-            'james@test.com' => 60000, 'itsupport@test.com' => 52000,
-            'housekeep@test.com' => 40000, 'maintain@test.com' => 42000,
-            'bobby@test.com' => 32000, 'fiona@test.com' => 26000,
-            'jackie@test.com' => 38000, 'kevin@test.com' => 28000,
-            'lara@test.com' => 22000, 'noel@test.com' => 30000,
-        ];
-        foreach ($salaries as $email => $salary) {
-            Employee::whereNull('salary')
-                ->whereHas('user', fn ($q) => $q->where('email', $email))
-                ->update(['salary' => $salary]);
         }
 
         // Skills with a level for the demo staff: [email => [skill => level]]
@@ -137,18 +134,16 @@ class DemoSeeder extends Seeder
             );
         }
 
-        // A few more people per department, made by the EmployeeFactory (fresh install only).
-        if ($freshInstall) {
-            foreach (['Finance', 'IT Support', 'Housekeeping', 'Maintenance'] as $deptName) {
-                Employee::factory()
-                    ->count(2)
-                    ->for($departments[$deptName])
-                    ->state(fn () => ['user_id' => User::factory()->state(['role' => 'employee', 'password' => $passwordHash])])
-                    ->create()
-                    ->each(fn (Employee $e) => $e->skills()->attach(
-                        $skills->random(2)->pluck('id')->mapWithKeys(fn ($id) => [$id => ['level' => fake()->randomElement(Skill::LEVELS)]])->all()
-                    ));
-            }
+        // A few more people per department, made by the EmployeeFactory.
+        foreach (['Finance', 'IT Support', 'Housekeeping', 'Maintenance'] as $deptName) {
+            Employee::factory()
+                ->count(2)
+                ->for($departments[$deptName])
+                ->state(fn () => ['user_id' => User::factory()->state(['role' => 'employee', 'password' => $passwordHash])])
+                ->create()
+                ->each(fn (Employee $e) => $e->skills()->attach(
+                    $skills->random(2)->pluck('id')->mapWithKeys(fn ($id) => [$id => ['level' => fake()->randomElement(Skill::LEVELS)]])->all()
+                ));
         }
 
         $this->seedLeave($created);
