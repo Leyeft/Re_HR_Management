@@ -6,15 +6,19 @@ use App\Models\ActivityLog;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
 
 /**
  * App-wide setup that runs on every request:
  *   - force https links in production
  *   - record each sign-in (last login + activity log)
  *   - make password-reset emails link to the SPA's reset page
+ *   - register the "brevo" mail transport (email over HTTPS)
  */
 class AppServiceProvider extends ServiceProvider
 {
@@ -55,6 +59,11 @@ class AppServiceProvider extends ServiceProvider
                 'ip_address' => request()->ip(),
             ]);
         });
+
+        // "brevo" mail transport: sends through Brevo's HTTPS API (config/mail.php, BREVO_API_KEY).
+        Mail::extend('brevo', fn () => (new BrevoTransportFactory)->create(
+            new Dsn('brevo+api', 'default', config('services.brevo.key'))
+        ));
 
         // Password-reset emails link to the React SPA's reset page.
         ResetPassword::createUrlUsing(fn ($user, string $token) => url(

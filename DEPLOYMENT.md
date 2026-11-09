@@ -83,7 +83,7 @@ php artisan migrate --force && php artisan db:seed --force
 
 After the first successful deploy you can clear this field. The seeder is safe to run again, but it isn't needed.
 
-**6. Deploy.** Click **Deploy**, or push to `main`. Watch **Deployments → View logs**. Then run the checks in [section 5](#5-after-the-first-deploy-checks) below.
+**6. Deploy.** Click **Deploy**, or push to `main`. Watch **Deployments → View logs**. Then run the checks in [section 6](#6-after-the-first-deploy-checks) below.
 
 ---
 
@@ -101,7 +101,7 @@ Copy the values from [`hr-system/hr-system/.env.production.example`](hr-system/h
 | `SANCTUM_STATEFUL_DOMAINS` | Your domain without `https://`, e.g. `crewly.up.railway.app` |
 | `LOG_CHANNEL` | `stderr`, so logs appear in the host's log viewer |
 | `AVATAR_DISK` | `public` with a volume (see step 4), or `s3` |
-| `MAIL_MAILER` | `log` until you set up a mail service. Reset and verification links then appear in the logs |
+| `MAIL_MAILER` | `log` until you set up a mail service (reset and verification links then appear in the logs), then `brevo`. See step 5 |
 | `DEMO_PASSWORD` | A **private** password for the demo accounts, if you seed demo data. The README shows `password` for local use |
 
 ---
@@ -153,7 +153,29 @@ Most hosts **wipe the app's disk on every redeploy**. Photos are saved in `stora
 
 ---
 
-## 5. After the first deploy: checks
+## 5. Real email (password reset and verification)
+
+**Railway blocks outgoing SMTP** (ports 25, 465, 587 and 2525) on its Hobby and trial plans, so Gmail SMTP and other SMTP setups time out. The app sends mail through **Brevo's HTTPS API** instead, which works on every plan. Brevo's free plan allows 300 emails a day and doesn't need a domain of your own.
+
+1. Create a free account at brevo.com.
+2. **Senders, domains & dedicated IPs → Senders → Add a sender:** enter the address the emails should come from (for example your Gmail) and click the confirmation link Brevo emails you.
+3. **SMTP & API → API keys → Generate a new API key.** Copy it; Brevo only shows it once.
+4. In the host's variables, set:
+
+   | Variable | Value |
+   | --- | --- |
+   | `MAIL_MAILER` | `brevo` |
+   | `BREVO_API_KEY` | the key from step 3 (**private**, never commit it) |
+   | `MAIL_FROM_ADDRESS` | the sender you verified in step 2, exactly |
+   | `MAIL_FROM_NAME` | `Crewly` |
+
+5. Redeploy. Then sign in, open **Profile → Send verification email**, and check the inbox. Also try **Forgot password** on the sign-in page.
+
+Without your own domain the emails are not signed for your address (no DKIM), so the **first ones may land in spam**. Mark them "Not spam". To switch back to logging, set `MAIL_MAILER=log`.
+
+---
+
+## 6. After the first deploy: checks
 
 1. `https://your-domain/up` shows a success page.
 2. `https://your-domain/` shows the Crewly sign-in screen.
@@ -167,7 +189,7 @@ Then add the live URLs to the table at the top of `README.md`.
 
 ---
 
-## 6. Common problems
+## 7. Common problems
 
 | Symptom | Cause and fix |
 | --- | --- |

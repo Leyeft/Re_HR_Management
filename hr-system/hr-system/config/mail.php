@@ -65,6 +65,12 @@ return [
             'transport' => 'resend',
         ],
 
+        // Brevo's HTTPS email API. Railway blocks outgoing SMTP on its cheaper plans,
+        // so the live site sends mail this way (MAIL_MAILER=brevo + BREVO_API_KEY).
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

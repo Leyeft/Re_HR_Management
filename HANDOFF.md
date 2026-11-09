@@ -115,7 +115,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **Certificate uploads** (user request, 2026-11-09, parked as future development; it is in the README's "Future development" section). Before building it, ask the user about the open questions listed there. Storage matters: the Railway volume only covers `storage/app/public`, so private files would be lost on redeploy unless the volume mount moves to `/app/storage/app` or the files go in the database.
 - Set `baseUrl` in a Postman environment for the live site (the README already has the live URLs).
 - Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet.
-- **Real email** on the live site (password reset, verification): currently `MAIL_MAILER=log`. Needs a mail service account (Mailtrap, Resend or Gmail SMTP) created by the user.
+- **Real email** on the live site: the code is ready (2026-11-09). The `brevo` mailer sends over HTTPS, because Railway blocks SMTP on Hobby. The user still has to create a Brevo account, verify a sender, and set `MAIL_MAILER=brevo`, `BREVO_API_KEY` and `MAIL_FROM_ADDRESS` in Railway (DEPLOYMENT.md, section 5). Until then mail goes to the log.
 - **Registration:** the brief lists "Registration", but public sign-up was removed by design (HR creates accounts). The options are to ask the teacher, or to add a "Request an account" form that HR approves.
 - **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk if needed.
 - **Dark mode:** done (2026-11-09) but **not yet checked by eye**. Ask the user to look at every page in dark mode.
@@ -137,7 +137,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **Safeguards:** the system always keeps at least one Admin and one HR; a department with staff always has a Head. A department without a Head sends leave straight to HR.
 - **Soft deletes** on users, employees and departments; Employee IDs are never reused.
 - **Holidays:** no recurring flag; uploads replace same-date names only (not whole date ranges, which was explicitly decided).
-- **Email:** in-app notifications only until a mail service exists (user's choice).
+- **Email:** only password reset and verification are emailed; everything else is in-app notifications (user's choice). Brevo over HTTPS, not SMTP, because Railway blocks SMTP. The user decided **not** to restrict password reset to verified emails.
 - **Pushing:** push to `personal` (`Re_HR_Management`). Ask the user before pushing. Never push to `origin` (Classroom) without the user asking.
 - **Tooling notes for the next session:**
   - The `gh` CLI isn't installed.
