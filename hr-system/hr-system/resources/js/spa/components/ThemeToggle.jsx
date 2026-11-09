@@ -31,7 +31,7 @@ export default function ThemeToggle({ onNav = false }) {
     const dispatch = useDispatch();
     const current = useSelector(selectThemeMode);
 
-    const base = 'flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+    const base = 'flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded px-1.5 py-1 text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
     const active = onNav ? 'bg-white/15 text-white' : 'bg-surface text-content shadow-sm';
     const idle = onNav ? 'text-white/70 hover:text-white' : 'text-muted hover:text-content';
 

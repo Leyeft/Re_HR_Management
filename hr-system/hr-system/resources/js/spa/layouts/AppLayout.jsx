@@ -93,7 +93,7 @@ export default function AppLayout() {
                                 </MenuButton>
                                 <MenuItems
                                     anchor="bottom end"
-                                    className="z-50 mt-2 w-56 rounded-md bg-surface py-1 shadow-lg ring-1 ring-line focus:outline-none"
+                                    className="z-50 mt-2 w-64 rounded-md bg-surface py-1 shadow-lg ring-1 ring-line focus:outline-none"
                                 >
                                     <div className="border-b border-line px-4 py-2">
                                         <p className="truncate text-sm font-medium text-content">{user.email}</p>
