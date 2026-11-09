@@ -2,12 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Brand colours, defined once. Tailwind exposes them as classes (bg-surface,
+ * text-primary-text, ...) via tailwind.config.js. To re-theme, edit hex values here only.
+ *
+ * Light is the default. Dark mode = the same names with dark values, switched on by
+ * data-theme="dark" on <html> (set by the user's Light/Dark/System choice, see themeSlice.js).
+ */
 :root {
-    --color-primary: #12305A;
+    color-scheme: light;
+
+    --color-primary: #12305A;        /* fills: buttons, active chips, chart bars (white text on top) */
     --color-primary-hover: #0C2342;
+    --color-primary-text: #12305A;   /* headings and links written in the brand colour */
     --color-accent: #2EC4B6;
     --color-accent-text: #0B7A72;
     --color-accent-tint: #E0F6F3;
+
+    --color-nav: #12305A;            /* top bar and sign-in brand panel */
+    --color-nav-line: #0C2342;
 
     --color-bg: #F4F7FA;
     --color-surface: #FFFFFF;
@@ -23,9 +36,64 @@
     --color-danger-bg: #FBE7E7;
     --color-info: #2F6FCC;
     --color-info-bg: #E6EFFB;
+    --color-on-status: #FFFFFF;      /* text on solid success/danger buttons */
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;              /* dark scrollbars, date pickers and other native controls */
+
+    --color-primary: #3567AE;
+    --color-primary-hover: #2B5795;
+    --color-primary-text: #8DB4EA;
+    --color-accent: #2EC4B6;
+    --color-accent-text: #4FD1C5;
+    --color-accent-tint: #133836;
+
+    --color-nav: #0B1320;
+    --color-nav-line: #1E2B3D;
+
+    --color-bg: #0E1621;
+    --color-surface: #172231;
+    --color-border: #2A3A4E;
+    --color-text: #E3EAF2;
+    --color-text-muted: #9AABBF;
+
+    --color-success: #5CCB8F;
+    --color-success-bg: #12301F;
+    --color-warning: #E8B04E;
+    --color-warning-bg: #3A2A10;
+    --color-danger: #F07B7B;
+    --color-danger-bg: #3A1A1E;
+    --color-info: #7AAAF0;
+    --color-info-bg: #15284A;
+    --color-on-status: #0E1621;
 }
 
 body {
     background-color: var(--color-bg);
     color: var(--color-text);
+}
+
+@layer base {
+    /* The forms plugin paints inputs white with grey borders; use the theme colours instead.
+       Same selectors (same specificity) as the plugin, so utility classes still win. */
+    [type='text'], input:where(:not([type])), [type='email'], [type='url'], [type='password'],
+    [type='number'], [type='date'], [type='datetime-local'], [type='month'], [type='search'],
+    [type='tel'], [type='time'], [type='week'], [multiple], textarea, select,
+    [type='checkbox'], [type='radio'] {
+        background-color: var(--color-surface);
+        border-color: var(--color-border);
+        color: var(--color-text);
+    }
+    [type='checkbox']:checked, [type='radio']:checked {
+        background-color: currentColor;
+        border-color: transparent;
+    }
+    input::placeholder, textarea::placeholder {
+        color: var(--color-text-muted);
+    }
+    /* Focus-ring gap matches the card behind it, not a white halo. */
+    :root[data-theme="dark"] * {
+        --tw-ring-offset-color: var(--color-surface);
+    }
 }

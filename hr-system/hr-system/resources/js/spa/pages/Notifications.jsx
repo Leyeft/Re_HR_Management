@@ -30,7 +30,7 @@ export default function Notifications() {
             width="max-w-3xl"
             actions={
                 unreadCount > 0 && (
-                    <button type="button" onClick={() => dispatch(markAllNotificationsRead())} className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium hover:bg-bg">
+                    <button type="button" onClick={() => dispatch(markAllNotificationsRead())} className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium hover:bg-bg">
                         Mark all as read
                     </button>
                 )
@@ -41,7 +41,7 @@ export default function Notifications() {
                 Unread only ({unreadCount})
             </label>
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading notifications…" />
                 ) : items.length === 0 ? (

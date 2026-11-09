@@ -48,7 +48,7 @@ export default function Skills() {
 
             {status === 'failed' && <LoadError message={error} onRetry={() => dispatch(fetchSkills())} />}
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading skills…" />
                 ) : items.length === 0 ? (
@@ -126,7 +126,7 @@ function SkillRow({ skill }) {
                 </div>
             ) : (
                 <div className="flex gap-4">
-                    <button type="button" onClick={() => setEditing(true)} className="text-primary hover:underline">Rename</button>
+                    <button type="button" onClick={() => setEditing(true)} className="text-primary-text hover:underline">Rename</button>
                     <button type="button" onClick={() => setConfirming(true)} className="text-danger hover:underline">Delete</button>
                 </div>
             )}

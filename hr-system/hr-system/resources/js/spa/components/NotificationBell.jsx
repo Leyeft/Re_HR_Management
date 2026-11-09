@@ -56,7 +56,7 @@ export default function NotificationBell() {
 
             <PopoverPanel
                 anchor="bottom end"
-                className="z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-lg bg-white shadow-xl ring-1 ring-black/5 focus:outline-none"
+                className="z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-lg bg-surface shadow-xl ring-1 ring-line focus:outline-none"
             >
                 {({ close }) => (
                     <>
@@ -71,7 +71,7 @@ export default function NotificationBell() {
 
                         <div className="max-h-96 overflow-y-auto">
                             {status === 'loading' && !items.length ? (
-                                <div className="flex justify-center p-6"><Spinner className="h-6 w-6 text-primary" /></div>
+                                <div className="flex justify-center p-6"><Spinner className="h-6 w-6 text-primary-text" /></div>
                             ) : items.length === 0 ? (
                                 <p className="p-6 text-center text-sm text-muted">You're all caught up.</p>
                             ) : (
@@ -99,7 +99,7 @@ export default function NotificationBell() {
                             )}
                         </div>
 
-                        <Link to="/notifications" onClick={close} className="block border-t border-line px-4 py-2.5 text-center text-sm font-medium text-primary hover:bg-bg">
+                        <Link to="/notifications" onClick={close} className="block border-t border-line px-4 py-2.5 text-center text-sm font-medium text-primary-text hover:bg-bg">
                             View all
                         </Link>
                     </>

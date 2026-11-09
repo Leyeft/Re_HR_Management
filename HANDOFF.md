@@ -64,7 +64,7 @@ These were set up by the user in the Railway dashboard, with guidance. The full 
 - **Railpack** auto-detects Laravel, runs Composer, `npm run build`, migrations and `storage:link` on start, and serves with FrankenPHP. Railway's `railway.json` config files are **deprecated**, which is why all settings are in the dashboard.
 - **Fixed during deploy:** `composer.json` now requires `php ^8.4`, because the locked packages need 8.4. This was merged from Railway's PR #1. It also declares `ext-pdo_mysql`, `ext-gd` and `ext-zip`, so Railpack installs them.
 - **Verified live:** `/up` 200, SPA loads, API 401 shape, DB connected, secure cookies, http→https.
-- **Not yet confirmed:** the user signing in on the live site with the demo password, and whether the new holiday features deployed cleanly after the last push.
+- **Confirmed by the user (2026-11-09):** signing in on the live site with the demo password works.
 
 ---
 
@@ -84,6 +84,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 | 7b | Deployed to Railway | ✅ |
 
 **Features added after the rebuild (2026-11-08/09):**
+- **Dark mode:** a Light / Dark / System switch in the user menu (and the phone menu). The choice is saved in the browser (`localStorage` key `crewly-theme`) by `store/themeSlice.js`. It works by setting `data-theme="dark"` on `<html>`; `app.css` holds a second set of colour values for it. An inline script in `spa.blade.php` applies the choice before the page paints, so there is no flash.
 - **Leave rules:** working days (weekends and holidays skipped); allowance by years of service (3/10/15/20); sick leave with a 30-day cap, auto-approved; professional leave unlimited; HR-controlled rollover with a maximum; overlap check; cancel with a reason.
 - **Holidays:** plain dates, uploaded **each year**. There's **no "recurring" flag any more**; it was removed by a migration because dates change yearly.
   - **Import from Excel/CSV** (`POST /api/holidays/import`, `dry_run=1` for a preview) with a downloadable template (`/templates/holidays.{xlsx,csv}`).
@@ -106,17 +107,17 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 
 **For the user:**
 - **Defense prep:** read `docs/HOW_IT_WORKS.md`, especially sections 3 (a request traced through the files) and 7 (questions). The brief says "unable to explain own code: −25%", and live code changes may be requested.
-- **Sign in on the live site** with the demo password and check the dashboard. If the credentials fail, the seed didn't run; check the deploy logs for "Seeding".
+- **Click through the live site** and check the screens in both light and dark mode.
 - **Run the system test cases** by hand (ST01–ST21 in TESTING.md) and fill in the Result column.
 - **GitHub Classroom repo:** the brief's deliverable is the Classroom link (`origin` remote), but **pushing there fails with 403**, and it only has the old Blade version. Ask the teacher to fix access, or to accept the personal repo.
 
 **Suggested next tasks (not done yet):**
-- Add the **live URLs** to the README table (it still says "Not deployed yet"), and set `baseUrl` in a Postman environment for the live site.
+- Set `baseUrl` in a Postman environment for the live site (the README already has the live URLs).
 - Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet.
 - **Real email** on the live site (password reset, verification): currently `MAIL_MAILER=log`. Needs a mail service account (Mailtrap, Resend or Gmail SMTP) created by the user.
 - **Registration:** the brief lists "Registration", but public sign-up was removed by design (HR creates accounts). The options are to ask the teacher, or to add a "Request an account" form that HR approves.
 - **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk if needed.
-- **Dark mode:** a bonus in the brief, not done.
+- **Dark mode:** done (2026-11-09) but **not yet checked by eye**. Ask the user to look at every page in dark mode.
 - **Online Testing doc** (claude.ai artifact from an early session): **outdated**. TESTING.md in the repo is current.
 - `react-frontend` branch: can be deleted.
 
@@ -148,6 +149,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 
 - **Logo:** "Crewly" SVGs in `hr-system/hr-system/public/logo/` (`crewly-logo.svg`, `crewly-logo-on-dark.svg`, icon, favicon), rendered by `resources/js/Components/ApplicationLogo.jsx` (`dark` prop for the navy bar).
 - **Colours** are defined once as CSS variables in `resources/css/app.css` (`:root`) and exposed to Tailwind (`primary`, `accent`, `success`, `warning`, `danger`, `info`, `bg`, `surface`, `line`, `content`, `muted`). To re-theme, edit the hex values in `app.css` only.
+- **Dark mode** colours are in the same file under `:root[data-theme="dark"]`. Use the tokens, never `bg-white` or `gray-*`: use `bg-surface` for cards, `text-primary-text` for brand-coloured text (`bg-primary` is for fills with white text), `bg-nav` for the top bar, and `text-on-status` on solid green/red buttons.
 
 ```css
 --color-primary: #12305A;  --color-accent: #2EC4B6;  --color-accent-text: #0B7A72;

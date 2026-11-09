@@ -20,7 +20,7 @@ export default function Pagination({ meta, onPage, label = 'results' }) {
             </p>
             {last > 1 && (
                 <div className="flex flex-wrap items-center gap-1">
-                    <button type="button" className={`${btn} border border-line bg-white disabled:opacity-40`} disabled={page === 1} onClick={() => onPage(page - 1)}>
+                    <button type="button" className={`${btn} border border-line bg-surface disabled:opacity-40`} disabled={page === 1} onClick={() => onPage(page - 1)}>
                         ‹ Prev
                     </button>
                     {pages.map((p, i) =>
@@ -32,13 +32,13 @@ export default function Pagination({ meta, onPage, label = 'results' }) {
                                 type="button"
                                 onClick={() => onPage(p)}
                                 aria-current={p === page ? 'page' : undefined}
-                                className={`${btn} ${p === page ? 'bg-primary text-white' : 'border border-line bg-white hover:bg-bg'}`}
+                                className={`${btn} ${p === page ? 'bg-primary text-white' : 'border border-line bg-surface hover:bg-bg'}`}
                             >
                                 {p}
                             </button>
                         ),
                     )}
-                    <button type="button" className={`${btn} border border-line bg-white disabled:opacity-40`} disabled={page === last} onClick={() => onPage(page + 1)}>
+                    <button type="button" className={`${btn} border border-line bg-surface disabled:opacity-40`} disabled={page === last} onClick={() => onPage(page + 1)}>
                         Next ›
                     </button>
                 </div>

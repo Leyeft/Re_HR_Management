@@ -62,7 +62,7 @@ export default function SkillsEditor({ value, onChange, allSkills, errors = {} }
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                         </SelectInput>
-                        <button type="button" onClick={add} disabled={!adding} className="rounded-md border border-line bg-white px-3 py-1.5 text-sm hover:bg-bg disabled:opacity-50">
+                        <button type="button" onClick={add} disabled={!adding} className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm hover:bg-bg disabled:opacity-50">
                             Add
                         </button>
                     </div>

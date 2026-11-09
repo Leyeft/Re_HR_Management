@@ -86,7 +86,7 @@ function VerifyEmailBanner({ user }) {
         <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning bg-warning-bg p-4 text-sm text-warning">
             <span>{sent ?? `Your email address (${user.email}) isn't verified yet.`}</span>
             {!sent && (
-                <button type="button" onClick={send} disabled={sending} className="rounded-md bg-white px-3 py-1.5 font-medium text-warning shadow-sm hover:bg-bg disabled:opacity-50">
+                <button type="button" onClick={send} disabled={sending} className="rounded-md bg-surface px-3 py-1.5 font-medium text-warning shadow-sm hover:bg-bg disabled:opacity-50">
                     {sending ? 'Sending…' : 'Send verification email'}
                 </button>
             )}

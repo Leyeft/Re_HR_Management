@@ -80,7 +80,7 @@ export default function Employees() {
             actions={
                 <>
                     <ExportLinks path="/reports/employees" params={{ search: filters.search, department: filters.department, rank: filters.rank, skill: filters.skill, sort: filters.sort }} />
-                    <Link to="/skills" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium hover:bg-bg">
+                    <Link to="/skills" className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium hover:bg-bg">
                         Skills
                     </Link>
                     <Link to="/employees/new" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
@@ -94,7 +94,7 @@ export default function Employees() {
                     e.preventDefault();
                     update({ search });
                 }}
-                className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow md:flex-row md:items-end"
+                className="flex flex-col gap-3 rounded-lg bg-surface p-4 shadow md:flex-row md:items-end"
                 role="search"
             >
                 <label className="flex-1 text-xs font-medium text-muted">
@@ -136,7 +136,7 @@ export default function Employees() {
                                 setSearch('');
                                 setParams({});
                             }}
-                            className="rounded-md border border-line bg-white px-4 py-2 text-sm hover:bg-bg"
+                            className="rounded-md border border-line bg-surface px-4 py-2 text-sm hover:bg-bg"
                         >
                             Clear
                         </button>
@@ -146,7 +146,7 @@ export default function Employees() {
 
             {status === 'failed' && <LoadError message={error} onRetry={load} />}
 
-            <div role="tablist" className="flex w-fit gap-1 rounded-lg bg-white p-1 shadow">
+            <div role="tablist" className="flex w-fit gap-1 rounded-lg bg-surface p-1 shadow">
                 {[['', 'Active'], ['only', 'Deleted']].map(([value, label]) => (
                     <button
                         key={label}
@@ -161,9 +161,9 @@ export default function Employees() {
                 ))}
             </div>
 
-            <div className="relative rounded-lg bg-white shadow">
+            <div className="relative rounded-lg bg-surface shadow">
                 {status === 'loading' && items.length > 0 && (
-                    <div className="absolute right-4 top-3"><Spinner className="h-5 w-5 text-primary" label="Updating" /></div>
+                    <div className="absolute right-4 top-3"><Spinner className="h-5 w-5 text-primary-text" label="Updating" /></div>
                 )}
 
                 {status === 'loading' && !items.length ? (
@@ -196,7 +196,7 @@ export default function Employees() {
                                     <tr key={e.id} className="border-t border-line">
                                         <td className="p-3 font-mono text-muted">{e.employee_code}</td>
                                         <td className="p-3">
-                                            <button type="button" onClick={() => setViewing(e)} className="inline-flex items-center gap-2 font-medium text-primary hover:underline">
+                                            <button type="button" onClick={() => setViewing(e)} className="inline-flex items-center gap-2 font-medium text-primary-text hover:underline">
                                                 <Avatar user={e.user} size="xs" />
                                                 {e.user?.name}
                                             </button>
@@ -218,7 +218,7 @@ export default function Employees() {
                                         </td>
                                         <td className="whitespace-nowrap p-3 text-right">
                                             {showingDeleted ? (
-                                                <button type="button" onClick={() => restore(e)} disabled={restoring === e.id} className="font-medium text-primary hover:underline disabled:opacity-50">
+                                                <button type="button" onClick={() => restore(e)} disabled={restoring === e.id} className="font-medium text-primary-text hover:underline disabled:opacity-50">
                                                     {restoring === e.id ? 'Restoring…' : 'Restore'}
                                                 </button>
                                             ) : (
@@ -226,7 +226,7 @@ export default function Employees() {
                                                     <span className="text-xs text-muted" title="Only an Admin can change Admin accounts">Admin account</span>
                                                 ) : (
                                                     <>
-                                                        <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary hover:underline">Edit</Link>
+                                                        <Link to={`/employees/${e.id}/edit`} className="me-4 text-primary-text hover:underline">Edit</Link>
                                                         <button type="button" onClick={() => setDeleting(e)} className="text-danger hover:underline">Delete</button>
                                                     </>
                                                 )

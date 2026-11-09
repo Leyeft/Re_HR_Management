@@ -5,12 +5,12 @@ export const loginCss = `
   .page { min-height: 100vh; display: flex; flex-wrap: wrap; font-family: 'Figtree', system-ui, sans-serif; }
 
   .page a { color: var(--color-accent-text); }
-  .page a:hover { color: var(--color-primary); }
+  .page a:hover { color: var(--color-primary-text); }
 
   /* ---------- Left brand panel ---------- */
   .brand {
     flex: 1 1 480px; min-width: 0;
-    background: var(--color-primary); color: #fff;
+    background: var(--color-nav); color: #fff;
     display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
     padding: 40px 48px; position: relative; overflow: hidden;
   }
@@ -28,7 +28,7 @@ export const loginCss = `
   .dot { position: absolute; border-radius: 50%; }
 
   .av {
-    position: absolute; border-radius: 50%; border: 3px solid var(--color-primary);
+    position: absolute; border-radius: 50%; border: 3px solid var(--color-nav);
     display: flex; align-items: center; justify-content: center; font-weight: 600;
     animation: spin-rev 48s linear infinite;
   }
@@ -43,21 +43,21 @@ export const loginCss = `
   .person { transform-origin: 50px 52px; animation: pop .6s cubic-bezier(.3,1.5,.5,1) 1.1s both; }
 
   .float-card {
-    position: absolute; background: #fff; color: var(--color-text);
+    position: absolute; background: #fff; color: #1A2B3C;
     border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px;
     box-shadow: 0 10px 30px rgba(5,20,40,.35);
     animation: float 6s ease-in-out infinite;
     font-size: 13px; line-height: 1.3;
   }
   .float-card strong { display: block; font-weight: 600; }
-  .float-card small { color: var(--color-text-muted); font-size: 13px; }
+  .float-card small { color: #4A5D73; font-size: 13px; }
   .float-card .icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
   /* ---------- Right form panel ---------- */
   .form-side { flex: 1 1 420px; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
   .form-box { width: 100%; max-width: 400px; }
   .page form { display: flex; flex-direction: column; gap: 20px; }
-  .form-box h1 { margin: 0 0 8px; font-size: 32px; font-weight: 600; letter-spacing: -0.8px; color: var(--color-primary); }
+  .form-box h1 { margin: 0 0 8px; font-size: 32px; font-weight: 600; letter-spacing: -0.8px; color: var(--color-primary-text); }
   .sub { margin: 0; font-size: 16px; color: var(--color-text-muted); }
 
   .status { font-size: 14px; font-weight: 500; color: var(--color-accent-text); }
@@ -98,7 +98,7 @@ export const loginCss = `
   .btn-primary:active { transform: scale(.98); }
   .btn-primary:disabled { opacity: .7; cursor: default; }
   .btn-sso {
-    border: 1.5px dashed #C5D0DC; background: var(--color-bg); color: var(--color-text-muted);
+    border: 1.5px dashed var(--color-border); background: var(--color-bg); color: var(--color-text-muted);
     font-weight: 500; cursor: not-allowed;
   }
   .tag { font-size: 12px; font-weight: 600; letter-spacing: .3px; color: var(--color-warning); background: var(--color-warning-bg); padding: 3px 8px; border-radius: 999px; }

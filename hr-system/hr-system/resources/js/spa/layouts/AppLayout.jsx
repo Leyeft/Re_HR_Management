@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import NotificationBell from '../components/NotificationBell';
+import ThemeToggle from '../components/ThemeToggle';
 import { logout, selectAuth } from '../store/authSlice';
 import { toastSuccess } from '../store/toastSlice';
 
@@ -62,7 +63,7 @@ export default function AppLayout() {
 
     return (
         <div className="min-h-screen bg-bg">
-            <nav className="border-b border-primary-hover bg-primary">
+            <nav className="border-b border-nav-line bg-nav">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex min-w-0">
@@ -92,7 +93,7 @@ export default function AppLayout() {
                                 </MenuButton>
                                 <MenuItems
                                     anchor="bottom end"
-                                    className="z-50 mt-2 w-56 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
+                                    className="z-50 mt-2 w-56 rounded-md bg-surface py-1 shadow-lg ring-1 ring-line focus:outline-none"
                                 >
                                     <div className="border-b border-line px-4 py-2">
                                         <p className="truncate text-sm font-medium text-content">{user.email}</p>
@@ -120,6 +121,10 @@ export default function AppLayout() {
                                             ))}
                                         </div>
                                     )}
+                                    <div className="border-t border-line px-4 py-2">
+                                        <p className="pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Theme</p>
+                                        <ThemeToggle />
+                                    </div>
                                     <MenuItem>
                                         <button type="button" onClick={signOut} className="block w-full border-t border-line px-4 py-2 text-left text-sm text-content data-[focus]:bg-bg">
                                             Sign out
@@ -165,6 +170,9 @@ export default function AppLayout() {
                                     <div className="truncate text-base font-medium text-white">{user.name}</div>
                                     <div className="truncate text-sm text-white/60">{user.email} · {roleLine}</div>
                                 </div>
+                            </div>
+                            <div className="mt-3 px-4">
+                                <ThemeToggle onNav />
                             </div>
                             <div className="mt-3 space-y-1">
                                 <NavLink to="/profile" className={mobileLink}>Profile</NavLink>

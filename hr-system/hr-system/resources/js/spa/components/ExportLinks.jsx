@@ -7,7 +7,7 @@ export default function ExportLinks({ path, params = {} }) {
     ).toString();
     const href = (format) => `${path}.${format}${query ? `?${query}` : ''}`;
 
-    const cls = 'inline-flex items-center rounded-md border border-line bg-white px-3 py-2 text-sm font-medium text-content hover:bg-bg';
+    const cls = 'inline-flex items-center rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-content hover:bg-bg';
 
     return (
         <div className="flex items-center gap-2">

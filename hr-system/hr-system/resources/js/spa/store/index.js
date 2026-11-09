@@ -11,6 +11,7 @@ import skillsReducer from './skillsSlice';
 import notificationsReducer from './notificationsSlice';
 import activityReducer from './activitySlice';
 import toastReducer from './toastSlice';
+import themeReducer, { syncTheme } from './themeSlice';
 
 /**
  * The global Redux store. Each feature has its own slice:
@@ -25,6 +26,7 @@ import toastReducer from './toastSlice';
  *   skills      – skills employees can have (with a level, via the employee_skill pivot)
  *   notifications – in-app notifications + unread count (the bell)
  *   activity    – the audit trail (Admin/HR)
+ *   theme       – light / dark mode (saved in this browser)
  */
 export const store = configureStore({
     reducer: {
@@ -39,8 +41,12 @@ export const store = configureStore({
         skills: skillsReducer,
         notifications: notificationsReducer,
         activity: activityReducer,
+        theme: themeReducer,
     },
 });
+
+// Apply the saved light/dark choice to the page and keep it in step.
+syncTheme(store);
 
 // Any 401 from the API ends the session in the store; the route guard then
 // sends the user to the login page.

@@ -1,6 +1,6 @@
 // Shows this year's leave allowances by type (annual / sick / professional).
 // `summary` comes from Employee::leaveSummary() on the server.
-function Stat({ title, main, sub, tone = 'text-primary' }) {
+function Stat({ title, main, sub, tone = 'text-primary-text' }) {
     return (
         <div className="rounded-lg border border-line p-4">
             <p className="text-xs uppercase tracking-wide text-muted">{title}</p>
@@ -16,7 +16,7 @@ export default function LeaveBalance({ summary }) {
     const { tier, year, annual, sick, professional } = summary;
 
     return (
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-surface p-6 shadow">
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-medium text-muted">Leave balance · {year}</h3>
                 <span className="rounded bg-accent-tint px-2 py-1 text-xs font-medium text-accent-text">
@@ -31,7 +31,7 @@ export default function LeaveBalance({ summary }) {
                     sub={`left · ${annual.taken} used · ${annual.pending} pending${
                         annual.carried_over ? ` · includes ${annual.carried_over} carried over` : ''
                     }`}
-                    tone="text-primary"
+                    tone="text-primary-text"
                 />
                 <Stat
                     title="Sick leave"

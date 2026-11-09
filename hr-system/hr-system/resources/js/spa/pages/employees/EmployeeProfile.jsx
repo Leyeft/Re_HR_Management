@@ -56,7 +56,7 @@ export default function EmployeeProfile() {
             width="max-w-5xl"
             actions={
                 <>
-                    <a href={`/reports/employees/${employee.id}/leave-record.pdf`} className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium hover:bg-bg">
+                    <a href={`/reports/employees/${employee.id}/leave-record.pdf`} className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium hover:bg-bg">
                         Download PDF
                     </a>
                     {/* Only an Admin can change or remove an Admin account. */}
@@ -75,7 +75,7 @@ export default function EmployeeProfile() {
         >
             <Link to="/employees" className="text-sm text-muted hover:text-content">← Back to employees</Link>
 
-            <section className="rounded-lg bg-white p-6 shadow">
+            <section className="rounded-lg bg-surface p-6 shadow">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <Avatar user={u} size="lg" />
@@ -102,7 +102,7 @@ export default function EmployeeProfile() {
 
             <LeaveBalance summary={employee.leave_summary} />
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 <h3 className="border-b border-line p-4 text-sm font-medium text-muted">Leave history (all years)</h3>
                 {history.status === 'loading' && !history.items.length ? (
                     <PageLoader label="Loading leave history…" />

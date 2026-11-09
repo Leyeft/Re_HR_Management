@@ -63,7 +63,7 @@ export default function ActivityLog() {
                     e.preventDefault();
                     apply(values);
                 }}
-                className="grid gap-3 rounded-lg bg-white p-4 shadow sm:grid-cols-2 lg:grid-cols-6"
+                className="grid gap-3 rounded-lg bg-surface p-4 shadow sm:grid-cols-2 lg:grid-cols-6"
                 role="search"
             >
                 <label className={`${label} lg:col-span-2`}>
@@ -99,16 +99,16 @@ export default function ActivityLog() {
                 <div className="flex gap-2 sm:col-span-2 lg:col-span-6 lg:justify-end">
                     <button type="submit" className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover">Apply</button>
                     {anyFilter && (
-                        <button type="button" onClick={() => setParams({})} className="rounded-md border border-line bg-white px-4 py-2 text-sm hover:bg-bg">Reset</button>
+                        <button type="button" onClick={() => setParams({})} className="rounded-md border border-line bg-surface px-4 py-2 text-sm hover:bg-bg">Reset</button>
                     )}
                 </div>
             </form>
 
             {status === 'failed' && <LoadError message={error} onRetry={load} />}
 
-            <section className="relative rounded-lg bg-white shadow">
+            <section className="relative rounded-lg bg-surface shadow">
                 {status === 'loading' && items.length > 0 && (
-                    <div className="absolute right-4 top-3"><Spinner className="h-5 w-5 text-primary" label="Updating" /></div>
+                    <div className="absolute right-4 top-3"><Spinner className="h-5 w-5 text-primary-text" label="Updating" /></div>
                 )}
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading activity…" />

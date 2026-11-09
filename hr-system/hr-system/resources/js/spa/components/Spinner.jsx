@@ -12,7 +12,7 @@ export default function Spinner({ className = 'h-5 w-5', label = 'Loading' }) {
 export function PageLoader({ label = 'Loading…' }) {
     return (
         <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-muted">
-            <Spinner className="h-8 w-8 text-primary" label={label} />
+            <Spinner className="h-8 w-8 text-primary-text" label={label} />
             <p className="text-sm">{label}</p>
         </div>
     );

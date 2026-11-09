@@ -49,7 +49,7 @@ export default function MyLeave() {
 
             {status === 'failed' && <LoadError message={error} onRetry={load} />}
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4">
                     <h3 className="text-sm font-medium text-muted">My requests</h3>
                     <label className="flex items-center gap-2 text-sm text-muted">

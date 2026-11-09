@@ -25,7 +25,7 @@ export default function DeptHistory() {
         <Page title={`${employee?.department?.name ?? 'Department'} leave history`} width="max-w-6xl">
             {status === 'failed' && <LoadError message={error} onRetry={() => load()} />}
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading history…" />
                 ) : (
@@ -46,7 +46,7 @@ export default function DeptHistory() {
                                 {items.map((leave) => (
                                     <tr key={leave.id} className="border-t border-line align-top">
                                         <td className="p-3">
-                                            <button type="button" onClick={() => setViewing(leave.employee)} className="font-medium text-primary hover:underline">
+                                            <button type="button" onClick={() => setViewing(leave.employee)} className="font-medium text-primary-text hover:underline">
                                                 {leave.employee?.user?.name}
                                             </button>
                                         </td>

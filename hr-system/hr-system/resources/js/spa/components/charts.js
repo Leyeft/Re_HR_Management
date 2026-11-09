@@ -23,7 +23,7 @@ export function barOptions({ horizontal = false, tooltipLabel } = {}) {
         plugins: {
             legend: { display: false }, // one series — the card title names it
             tooltip: {
-                backgroundColor: cssVar('--color-text'),
+                backgroundColor: cssVar('--color-primary-hover'),
                 padding: 10,
                 cornerRadius: 6,
                 displayColors: false,

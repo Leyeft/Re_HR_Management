@@ -64,7 +64,7 @@ export default function Departments() {
         >
             {status === 'failed' && <LoadError message={error} onRetry={() => dispatch(fetchDepartments())} />}
 
-            <div className="rounded-lg bg-white p-6 shadow">
+            <div className="rounded-lg bg-surface p-6 shadow">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <Tabs value={tab} onChange={setTab} deletedCount={deleted.status === 'succeeded' ? deleted.items.length : null} />
                     {tab === 'active' && (
@@ -151,7 +151,7 @@ function ActiveTable({ rows, searching, total, onEdit, onDelete }) {
                                 <Link to={`/employees?department=${d.id}`} className="text-accent-text hover:underline">{d.employees_count}</Link>
                             </td>
                             <td className="whitespace-nowrap p-3 text-right">
-                                <button type="button" onClick={() => onEdit(d)} className="me-4 text-primary hover:underline">Edit</button>
+                                <button type="button" onClick={() => onEdit(d)} className="me-4 text-primary-text hover:underline">Edit</button>
                                 <button type="button" onClick={() => onDelete(d)} className="text-danger hover:underline">Delete</button>
                             </td>
                         </tr>
@@ -205,7 +205,7 @@ function DeletedTable() {
                             <td className="p-3 font-medium text-content">{d.name}</td>
                             <td className="p-3 text-muted">{new Date(d.deleted_at).toLocaleDateString()}</td>
                             <td className="p-3 text-right">
-                                <button type="button" onClick={() => restore(d)} disabled={busy === d.id} className="font-medium text-primary hover:underline disabled:opacity-50">
+                                <button type="button" onClick={() => restore(d)} disabled={busy === d.id} className="font-medium text-primary-text hover:underline disabled:opacity-50">
                                     {busy === d.id ? 'Restoring…' : 'Restore'}
                                 </button>
                             </td>

@@ -8,6 +8,7 @@ import Page, { Card, LoadError } from '../components/Page';
 import { PageLoader } from '../components/Spinner';
 import { selectAuth } from '../store/authSlice';
 import { fetchDashboard } from '../store/dashboardSlice';
+import { selectTheme } from '../store/themeSlice';
 
 const STATUS = [
     { key: 'pending_head', label: 'Awaiting Head', color: '--color-warning' },
@@ -39,6 +40,7 @@ export default function Dashboard() {
 /* ===== Admin / HR ===== */
 
 function OrganisationDashboard({ data }) {
+    useSelector(selectTheme); // re-render on a light/dark switch, so the charts pick up the new colours
     const awaitingHr = data.leave_by_status.pending_hr ?? 0;
 
     // Biggest department first, so the ranking reads top to bottom.
@@ -61,10 +63,10 @@ function OrganisationDashboard({ data }) {
                 <Stat label="Departments" value={data.total_departments} />
                 <Link
                     to="/hr/leave?status=pending_hr"
-                    className="rounded-lg border-l-4 border-info bg-white p-6 shadow transition hover:shadow-md"
+                    className="rounded-lg border-l-4 border-info bg-surface p-6 shadow transition hover:shadow-md"
                 >
                     <p className="text-sm text-muted">Waiting for HR sign-off</p>
-                    <p className="mt-1 text-4xl font-bold text-primary">{awaitingHr}</p>
+                    <p className="mt-1 text-4xl font-bold text-primary-text">{awaitingHr}</p>
                     <p className="mt-1 text-xs font-medium text-info">{awaitingHr ? 'Review now →' : 'All caught up'}</p>
                 </Link>
             </div>
@@ -114,17 +116,17 @@ function PersonalDashboard({ data }) {
 
     return (
         <>
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-white p-5 shadow">
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-surface p-5 shadow">
                 <div>
                     <p className="text-sm text-muted">{employee?.department?.name} · Employee ID</p>
-                    <p className="font-mono text-2xl font-semibold text-primary">{data.employee_code}</p>
+                    <p className="font-mono text-2xl font-semibold text-primary-text">{data.employee_code}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Link to="/leave/new" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover">
                         Request leave
                     </Link>
                     {data.is_head && (
-                        <Link to="/approvals" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium text-content hover:bg-bg">
+                        <Link to="/approvals" className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-content hover:bg-bg">
                             Approvals
                         </Link>
                     )}
@@ -145,9 +147,9 @@ function PersonalDashboard({ data }) {
 
 /* ===== Pieces ===== */
 
-function Stat({ label, value, tone = 'text-primary' }) {
+function Stat({ label, value, tone = 'text-primary-text' }) {
     return (
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-surface p-6 shadow">
             <p className="text-sm text-muted">{label}</p>
             <p className={`mt-1 text-3xl font-bold ${tone}`}>{value}</p>
         </div>

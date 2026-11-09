@@ -46,7 +46,7 @@ export default function Approvals() {
 
             {status === 'failed' && <LoadError message={error} onRetry={() => load()} />}
 
-            <section className="rounded-lg bg-white shadow">
+            <section className="rounded-lg bg-surface shadow">
                 {status === 'loading' && !items.length ? (
                     <PageLoader label="Loading requests…" />
                 ) : (
@@ -69,7 +69,7 @@ export default function Approvals() {
                                     return (
                                         <tr key={leave.id} className="border-t border-line align-top">
                                             <td className="p-3">
-                                                <button type="button" onClick={() => setViewing(leave.employee)} className="font-medium text-primary hover:underline">
+                                                <button type="button" onClick={() => setViewing(leave.employee)} className="font-medium text-primary-text hover:underline">
                                                     {leave.employee?.user?.name}
                                                 </button>
                                             </td>
@@ -83,7 +83,7 @@ export default function Approvals() {
                                                     type="button"
                                                     onClick={() => approve(leave)}
                                                     disabled={busyId === leave.id}
-                                                    className="me-2 rounded-md bg-success px-3 py-1.5 text-white hover:opacity-90 disabled:opacity-50"
+                                                    className="me-2 rounded-md bg-success px-3 py-1.5 text-on-status hover:opacity-90 disabled:opacity-50"
                                                 >
                                                     {busyId === leave.id ? '…' : 'Approve'}
                                                 </button>

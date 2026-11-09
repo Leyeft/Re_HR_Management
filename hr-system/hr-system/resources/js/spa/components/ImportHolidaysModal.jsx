@@ -99,8 +99,8 @@ export default function ImportHolidaysModal({ show, onClose }) {
                         Two columns: <b>date</b> (2026-12-25 or 25/12/2026) and <b>name</b>. Replace the example rows with your own.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                        <a href="/templates/holidays.xlsx" className="rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg">Excel template (.xlsx)</a>
-                        <a href="/templates/holidays.csv" className="rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg">CSV template (.csv)</a>
+                        <a href="/templates/holidays.xlsx" className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:bg-bg">Excel template (.xlsx)</a>
+                        <a href="/templates/holidays.csv" className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:bg-bg">CSV template (.csv)</a>
                     </div>
                 </section>
 
@@ -113,7 +113,7 @@ export default function ImportHolidaysModal({ show, onClose }) {
                             {file ? 'Choose another file' : 'Choose file'}
                         </SecondaryButton>
                         {file && <span className="truncate text-sm text-muted">{file.name}</span>}
-                        {busy && <Spinner className="h-5 w-5 text-primary" label="Checking file" />}
+                        {busy && <Spinner className="h-5 w-5 text-primary-text" label="Checking file" />}
                     </div>
                     {error && <p role="alert" className="mt-3 rounded-md bg-danger-bg p-3 text-sm text-danger">{error}</p>}
                 </section>

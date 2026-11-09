@@ -24,7 +24,13 @@ export default {
                 primary: {
                     DEFAULT: 'var(--color-primary)',
                     hover: 'var(--color-primary-hover)',
+                    text: 'var(--color-primary-text)',
                 },
+                nav: {
+                    DEFAULT: 'var(--color-nav)',
+                    line: 'var(--color-nav-line)',
+                },
+                'on-status': 'var(--color-on-status)',
                 accent: {
                     DEFAULT: 'var(--color-accent)',
                     text: 'var(--color-accent-text)',
