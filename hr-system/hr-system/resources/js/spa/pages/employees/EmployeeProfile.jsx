@@ -13,6 +13,7 @@ import SkillChips from '../../components/SkillChips';
 import { PageLoader } from '../../components/Spinner';
 import { selectCan } from '../../store/authSlice';
 import { fetchEmployee, fetchEmployeeHistory } from '../../store/employeesSlice';
+import { canSeeSalary, formatSalary } from '../../utils/money';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 const fmt = (iso) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : null);
@@ -93,6 +94,7 @@ export default function EmployeeProfile() {
                     <Field label="Date of birth">{employee.date_of_birth}</Field>
                     <Field label="Date hired">{employee.date_hired}</Field>
                     <Field label="Years of service">{employee.leave_summary?.years_of_service}</Field>
+                    {canSeeSalary(employee) && <Field label="Monthly salary">{formatSalary(employee.salary)}</Field>}
                 </dl>
                 <div className="mt-6 border-t border-line pt-4">
                     <h3 className="mb-2 text-xs uppercase tracking-wide text-muted">Skills</h3>

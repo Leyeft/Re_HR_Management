@@ -11,7 +11,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 | **Live app** | **https://rehrmanagement-production.up.railway.app** (hosted on Railway, see [DEPLOYMENT.md](DEPLOYMENT.md)) |
 | **Live API** | **https://rehrmanagement-production.up.railway.app/api** (same domain; e.g. `/up` is the health check) |
 | **API documentation** | Postman collection in [`docs/postman/`](docs/postman/) (51 endpoints, each with a real example response) |
-| **Tests** | 169 automated tests. See [TESTING.md](TESTING.md) |
+| **Tests** | 182 automated tests. See [TESTING.md](TESTING.md) |
 | **How the code works** | [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md): architecture, one request traced through every file, each feature explained, where to change things |
 
 ---
@@ -43,6 +43,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 - Full CRUD for employees, departments and skills. Employee IDs are assigned automatically (department ID × 100000 + a running number).
 - Departments form a **hierarchy**: a department can sit inside another.
 - **Skills** have a level (beginner, intermediate or expert), and employees can be filtered by skill.
+- **Monthly salary** on each employee. Only Admin, HR and the employee themselves can see it (not Heads); only Admin and HR can change it, and never their own.
 - Deletes are **soft**: deleted employees and departments can be restored, and past leave stays on record.
 - Safeguards: the system always keeps at least one Admin and one HR account, and a department with staff always has a Head.
 
@@ -53,7 +54,7 @@ Crewly manages a company's staff, departments and leave. Employees request leave
 - **Reports:** CSV and PDF export of the leave list and the employee list (using the current filters), and a PDF leave record per employee.
 - **Accounts:** sign-in, password reset by email, email verification, profile editing and profile photo upload. There is no public sign-up; HR and Admin create the accounts.
 - **Search, filtering and pagination**, both server-side (employees, leave, activity) and client-side (instant department search).
-- Responsive layout, toasts, loading states, and themed confirmation dialogs.
+- Responsive layout, **light and dark mode** (Light / Dark / System), toasts, loading states, and themed confirmation dialogs.
 
 ---
 
@@ -144,6 +145,8 @@ There are three system roles, Employee, HR and Admin (`users.role`). Separately,
 | --- | :-: | :-: | :-: | :-: |
 | Sign in, edit own profile and photo, change password | ✅ | ✅ | ✅ | ✅ |
 | See own dashboard, balance and notifications | ✅ | ✅ | ✅ | ✅ |
+| See **own** monthly salary² | ✅ | ✅ | ✅ | ✅ |
+| See everyone's salary; set salaries (never their own) | — | — | ✅ | ✅ |
 | Request and cancel own leave¹ | ✅ | ✅ | ✅ | ✅ |
 | Approve or reject leave in **own department** (step 1) | — | ✅ | — | — |
 | See own department's leave history | — | ✅ | — | — |
@@ -155,6 +158,8 @@ There are three system roles, Employee, HR and Admin (`users.role`). Separately,
 | Create, edit or remove **Admin** accounts; give the Admin role | — | — | — | ✅ |
 
 ¹ For accounts linked to an employee record. A Head's own request goes straight to HR.
+
+² Heads do **not** see their staff's salaries: the API leaves the field out of every response for them. HR can't change an Admin's salary.
 
 Rules that apply to everyone:
 - HR and Admin accounts can't also be a Head.

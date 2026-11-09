@@ -14,7 +14,7 @@ Read this first when picking the project up. It says where things are, what's do
 | **Code** | `hr-system/hr-system/` inside this repo |
 | **Repo / branch** | `github.com/Leyeft/Re_HR_Management`, branch **`main`** (git remote `personal`). Local `main` tracks `personal/main`. `react-frontend` is an old branch, identical to an earlier `main`; it can be deleted |
 | **Live site** | **https://rehrmanagement-production.up.railway.app** (Railway). It redeploys automatically on every push to `main` |
-| **Tests** | **169 passing**: 31 unit + 138 API feature tests (`php artisan test`) |
+| **Tests** | **182 passing**: 31 unit + 151 API feature tests (`php artisan test`) |
 | **Course brief** | `hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`. **Deliberately left untracked**: never commit it, because `public/` is served to the web |
 | **Estimated grade vs. brief** | About 83–90%, if the defense goes well (see section 5) |
 
@@ -28,7 +28,7 @@ Read this first when picking the project up. It says where things are, what's do
 cd C:\laragon\www\HR_Management\final-project-Leyeft-1\hr-system\hr-system
 php artisan serve          # → http://127.0.0.1:8000
 npm run dev                # second terminal, only while editing React (or: npm run build)
-php artisan test           # 169 tests, SQLite in memory, ~1 min
+php artisan test           # 182 tests, SQLite in memory, ~1 min
 ```
 
 - **Database:** MySQL `hr_system` (Laragon, root, no password). All migrations have run locally.
@@ -84,6 +84,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 | 7b | Deployed to Railway | ✅ |
 
 **Features added after the rebuild (2026-11-08/09):**
+- **Salary:** monthly base salary (THB) on each employee (`employees.salary`, nullable). Seen by Admin, HR and the person themselves; **Heads don't see it** (user's choice). `EmployeeResource` leaves the key out for anyone else, checked per employee through `EmployeePolicy::viewSalary`. Changed only by Admin/HR via `editSalary`: never your own, and HR can't change an Admin's. It is in the Employees CSV (reports are Admin/HR only) but not in the PDF. DemoSeeder fills empty demo salaries. Changes appear in the activity log with old and new values (Admin/HR only). This is not full payroll: no tax, deductions or payslips.
 - **Dark mode:** a Light / Dark / System switch in the user menu (and the phone menu). The choice is saved in the browser (`localStorage` key `crewly-theme`) by `store/themeSlice.js`. It works by setting `data-theme="dark"` on `<html>`; `app.css` holds a second set of colour values for it. An inline script in `spa.blade.php` applies the choice before the page paints, so there is no flash.
 - **Leave rules:** working days (weekends and holidays skipped); allowance by years of service (3/10/15/20); sick leave with a 30-day cap, auto-approved; professional leave unlimited; HR-controlled rollover with a maximum; overlap check; cancel with a reason.
 - **Holidays:** plain dates, uploaded **each year**. There's **no "recurring" flag any more**; it was removed by a migration because dates change yearly.

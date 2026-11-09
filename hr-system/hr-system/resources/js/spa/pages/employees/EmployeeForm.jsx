@@ -10,7 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import Page, { LoadError } from '../../components/Page';
 import { PageLoader } from '../../components/Spinner';
 import useApiForm from '../../hooks/useApiForm';
-import { selectCan } from '../../store/authSlice';
+import { selectCan, selectUser } from '../../store/authSlice';
 import { fetchDepartments } from '../../store/departmentsSlice';
 import SkillsEditor from '../../components/SkillsEditor';
 import { createEmployee, fetchEmployee, updateEmployee } from '../../store/employeesSlice';
@@ -69,9 +69,13 @@ function Form({ employee, departments }) {
         date_of_birth: employee?.date_of_birth ?? '',
         date_hired: employee?.date_hired ?? '',
         skills: (employee?.skills ?? []).map((s) => ({ id: s.id, level: s.level })),
+        salary: employee?.salary ?? '',
     });
     const allSkills = useSelector((state) => state.skills.items);
     const can = useSelector(selectCan);
+    const me = useSelector(selectUser);
+    // No one changes their own salary (the API refuses too).
+    const ownRecord = !isNew && employee.user?.id === me?.id;
 
     useEffect(() => {
         if (!allSkills.length) dispatch(fetchSkills());
@@ -167,6 +171,25 @@ function Form({ employee, departments }) {
                             <option value="employee">Employee</option>
                             <option value="head">Head of Department</option>
                         </SelectInput>
+                    </Field>
+                    <Field
+                        id="salary"
+                        label="Monthly salary (THB)"
+                        error={errors.salary}
+                        hint={ownRecord ? 'You can’t change your own salary. Ask another HR member or an Admin.' : 'Optional. Seen only by Admin, HR and this person.'}
+                    >
+                        <TextInput
+                            id="salary"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
+                            placeholder="e.g. 32000"
+                            className="mt-1 block w-full disabled:bg-bg disabled:text-muted"
+                            value={data.salary}
+                            onChange={field('salary')}
+                            disabled={ownRecord}
+                        />
                     </Field>
                 </fieldset>
 

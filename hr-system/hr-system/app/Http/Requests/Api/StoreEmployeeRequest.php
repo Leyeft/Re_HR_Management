@@ -35,6 +35,8 @@ class StoreEmployeeRequest extends FormRequest
             'skills.*.level' => ['required', 'in:beginner,intermediate,expert'],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'date_hired' => ['required', 'date', 'before_or_equal:today'],
+            // Monthly salary in THB; optional (can be filled in later).
+            'salary' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ];
     }
 
@@ -51,6 +53,9 @@ class StoreEmployeeRequest extends FormRequest
             'skills.*.id.distinct' => 'Each skill can only be added once.',
             'skills.*.level.in' => 'Skill level must be beginner, intermediate or expert.',
             'date_hired.before_or_equal' => 'Date hired can\'t be in the future.',
+            'salary.numeric' => 'Salary must be a number.',
+            'salary.min' => 'Salary can\'t be negative.',
+            'salary.max' => 'Salary is too large.',
         ];
     }
 }

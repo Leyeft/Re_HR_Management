@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Hash;
 class EmployeeService
 {
     /**
-     * $data: name, email, password, role, rank, department_id, date_of_birth, date_hired
+     * $data: name, email, password, role, rank, department_id, date_of_birth, date_hired, salary?
      */
     public function create(array $data): Employee
     {
@@ -39,6 +39,7 @@ class EmployeeService
                 'rank' => $data['rank'],
                 'date_of_birth' => $data['date_of_birth'],
                 'date_hired' => $data['date_hired'],
+                'salary' => $data['salary'] ?? null,
             ]);
 
             if (array_key_exists('skills', $data)) {
@@ -50,7 +51,7 @@ class EmployeeService
     }
 
     /**
-     * $data: name, email, role, rank, department_id, date_of_birth, date_hired
+     * $data: name, email, role, rank, department_id, date_of_birth, date_hired, salary?
      */
     public function update(Employee $employee, array $data): Employee
     {
@@ -89,6 +90,8 @@ class EmployeeService
                 'rank' => $data['rank'],
                 'date_of_birth' => $data['date_of_birth'],
                 'date_hired' => $data['date_hired'],
+                // Only when sent; UpdateEmployeeRequest has already checked who may change it.
+                ...(array_key_exists('salary', $data) ? ['salary' => $data['salary']] : []),
             ]);
 
             // Only touch skills when the form sent them (older clients may not).

@@ -10,6 +10,7 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import Avatar from '../components/Avatar';
 import { formatDateTime } from '../utils/time';
+import { canSeeSalary, formatSalary } from '../utils/money';
 import Page, { Card } from '../components/Page';
 import useApiForm from '../hooks/useApiForm';
 import { fetchMe, selectAuth, userUpdated } from '../store/authSlice';
@@ -23,14 +24,15 @@ export default function Profile() {
     return (
         <Page title="Profile" width="max-w-3xl">
             <Card title="Your account">
-                <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+                <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
                     <Item label="Role">{ROLE_LABELS[user.role]}</Item>
                     <Item label="Employee ID">{employee?.employee_code ?? '—'}</Item>
                     <Item label="Department">{employee?.department?.name ?? '—'}</Item>
                     <Item label="Rank">{employee?.rank_label ?? '—'}</Item>
+                    {canSeeSalary(employee) && <Item label="Monthly salary">{formatSalary(employee.salary)}</Item>}
                 </dl>
                 <p className="mt-4 text-xs text-muted">
-                    Role, department and rank are managed by HR.
+                    Role, department, rank and salary are managed by HR. Only you, HR and Admin can see your salary.
                     {user.last_login_at && ` Last sign-in: ${formatDateTime(user.last_login_at)}.`}
                 </p>
             </Card>

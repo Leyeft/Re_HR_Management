@@ -25,6 +25,7 @@ class EmployeeFactory extends Factory
             'rank' => 'employee',
             'date_of_birth' => fake()->dateTimeBetween('-60 years', '-20 years')->format('Y-m-d'),
             'date_hired' => fake()->dateTimeBetween('-20 years', '-1 month')->format('Y-m-d'),
+            'salary' => fake()->numberBetween(36, 90) * 500, // 18,000–45,000 THB a month
         ];
     }
 

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { selectCan } from '../store/authSlice';
 import Avatar from './Avatar';
 import SkillChips from './SkillChips';
+import { canSeeSalary, formatSalary } from '../utils/money';
 
 const ROLE_LABELS = { admin: 'Admin', hr: 'HR', employee: 'Employee' };
 
@@ -47,6 +48,8 @@ export default function EmployeeDetailsModal({ employee, onClose }) {
                         <Row label="Department">{employee.department?.name}</Row>
                         <Row label="System role">{ROLE_LABELS[employee.user?.role]}</Row>
                         <Row label="Date hired">{employee.date_hired}</Row>
+                        {/* Heads see this modal too; the API leaves salary out for them. */}
+                        {canSeeSalary(employee) && <Row label="Monthly salary">{formatSalary(employee.salary)}</Row>}
                         {ls && (
                             <>
                                 <Row label="Years of service">{ls.years_of_service}</Row>

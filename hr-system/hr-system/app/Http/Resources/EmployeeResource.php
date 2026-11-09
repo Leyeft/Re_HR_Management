@@ -23,6 +23,12 @@ class EmployeeResource extends JsonResource
             'rank_label' => $this->rank === 'head' ? 'Head of Department' : 'Employee',
             'date_of_birth' => $this->date_of_birth?->format('Y-m-d'),
             'date_hired' => $this->date_hired?->format('Y-m-d'),
+            // Monthly salary (THB). Only for Admin, HR and the person themselves (EmployeePolicy):
+            // for anyone else, e.g. a Head looking at leave requests, the key isn't sent at all.
+            'salary' => $this->when(
+                (bool) $request->user()?->can('viewSalary', $this->resource),
+                fn () => $this->salary === null ? null : (float) $this->salary,
+            ),
             'department_id' => $this->department_id,
             'user' => new UserResource($this->whenLoaded('user')),
             'department' => new DepartmentResource($this->whenLoaded('department')),

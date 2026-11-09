@@ -102,6 +102,22 @@ class DemoSeeder extends Seeder
             ]);
         }
 
+        // Monthly salaries (THB) for the demo staff. Only fills empty ones, so it is safe
+        // to run again and never overwrites a salary HR has set.
+        $salaries = [
+            'admin@test.com' => 85000, 'hr@test.com' => 55000,
+            'james@test.com' => 60000, 'itsupport@test.com' => 52000,
+            'housekeep@test.com' => 40000, 'maintain@test.com' => 42000,
+            'bobby@test.com' => 32000, 'fiona@test.com' => 26000,
+            'jackie@test.com' => 38000, 'kevin@test.com' => 28000,
+            'lara@test.com' => 22000, 'noel@test.com' => 30000,
+        ];
+        foreach ($salaries as $email => $salary) {
+            Employee::whereNull('salary')
+                ->whereHas('user', fn ($q) => $q->where('email', $email))
+                ->update(['salary' => $salary]);
+        }
+
         // Skills with a level for the demo staff: [email => [skill => level]]
         $skillMap = [
             'admin@test.com' => ['Leadership' => 'expert', 'Excel' => 'intermediate'],

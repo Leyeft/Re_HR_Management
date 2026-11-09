@@ -2,7 +2,7 @@
 
 _Last updated: 2026-11-09_
 
-Crewly is tested at four levels: unit, integration, system and security. All **169 automated tests pass**: 31 unit tests and 138 integration (API) tests. System tests are run by hand in the browser.
+Crewly is tested at four levels: unit, integration, system and security. All **182 automated tests pass**: 31 unit tests and 151 integration (API) tests. System tests are run by hand in the browser.
 
 ```
 cd hr-system\hr-system
@@ -35,7 +35,7 @@ Load and stress testing is out of scope, because the system serves one company's
 | Level | What is tested | How | Count |
 | --- | --- | --- | --- |
 | Unit | Single business rules (allowance tiers, working days, settings, employee IDs) | PHPUnit, automated | 31 |
-| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 138 |
+| Integration | A full HTTP request to the REST API through routes, middleware, FormRequests, controllers, services and the database | Laravel feature tests, automated | 151 |
 | System | Complete user tasks in the real app, from login to result | Manual, in the browser | 21 cases |
 | Security | Who can see and do what; protection of key accounts; safe sign-in, uploads and exports | Part of the integration tests, plus manual checks | 31 |
 
@@ -117,7 +117,7 @@ Every defect found during review and testing is logged with an ID, its severity 
 
 ## 4.4.4.2 Integration Tests
 
-All 138 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
+All 151 integration tests pass. Each one sends a real HTTP request to the REST API, signed in as a given role (Sanctum). The request goes through the full stack: routes, middleware, FormRequest validation, controller, services, models and database. The test then checks the JSON response and what was saved. They are Laravel feature tests in `hr-system/hr-system/tests/Feature/`, and each test starts from an empty database.
 
 | Test file | Module | What is verified | Tests | Result |
 | --- | --- | --- | --- | --- |
@@ -133,6 +133,8 @@ All 138 integration tests pass. Each one sends a real HTTP request to the REST A
 | `ReportTest` | CSV and PDF exports | Only Admin/HR can export; guests go to login; CSV rows and working days; exports use the same filters as the pages; date-range overlap; formula text neutralised; all three PDFs download | 13 | Pass |
 | `LeaveRolloverTest` | Rollover | Off by default; unused days carry over up to HR's maximum; staff hired this year carry nothing; only HR or Admin can change it | 6 | Pass |
 | `SpaShellTest` | The SPA | Every page path serves the React app; `/api` paths are not swallowed by it; the CSRF-cookie endpoint and health check work | 4 | Pass |
+| `Api/SalaryApiTest` | Salary privacy | Admin and HR see salaries (list and profile); people see their own; **a Head never receives their staff's salary**, not even inside leave requests; Heads and staff can't open the employee list; HR sets salary on create and edit (logged); leaving it out keeps it; nobody changes their own; saving your own record with it unchanged is fine; HR can't change an Admin's; must be a positive number; CSV has a salary column | 12 | Pass |
+| `MailTransportTest` | Email transport | The `brevo` mailer is wired to Brevo's HTTPS API transport (Railway blocks SMTP) | 1 | Pass |
 
 Defect B17 surfaced on the first run of the original suite: 25 of 26 tests failed until the migrations were made database-portable. When the app was rebuilt as a REST API, every check from the old page tests was moved to the API, so no rule lost its test.
 

@@ -44,6 +44,7 @@ class Employee extends Model
         'rank',
         'date_of_birth',
         'date_hired',
+        'salary', // monthly, THB; visibility rules in EmployeePolicy
     ];
 
     // Every new employee gets their ID at the moment they're saved (one at a time,
@@ -92,6 +93,7 @@ class Employee extends Model
     protected $casts = [
         'date_of_birth' => 'date:Y-m-d',
         'date_hired' => 'date:Y-m-d',
+        'salary' => 'decimal:2',
     ];
 
     /* ===== 3. Relationships ===== */

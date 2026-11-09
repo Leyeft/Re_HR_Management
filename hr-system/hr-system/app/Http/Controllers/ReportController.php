@@ -97,7 +97,7 @@ class ReportController extends Controller
         if ($format === 'csv') {
             return $this->csv($filename, [
                 'Employee ID', 'Name', 'Email', 'Department', 'System role', 'Rank', 'Date hired',
-                'Years of service', 'Annual allowance', 'Annual used', 'Annual pending', 'Annual left', 'Sick used',
+                'Monthly salary (THB)', 'Years of service', 'Annual allowance', 'Annual used', 'Annual pending', 'Annual left', 'Sick used',
             ], $employees->map(fn (Employee $e) => [
                 $e->employee_code,
                 $e->user?->name,
@@ -106,6 +106,7 @@ class ReportController extends Controller
                 self::ROLE_LABELS[$e->user?->role] ?? $e->user?->role,
                 $e->rank === 'head' ? 'Head of Department' : 'Employee',
                 $e->date_hired?->format('Y-m-d'),
+                $e->salary, // reports are Admin/HR only (routes/web.php), who may see every salary
                 $e->leave_summary['years_of_service'],
                 $e->leave_summary['annual']['total'],
                 $e->leave_summary['annual']['taken'],
