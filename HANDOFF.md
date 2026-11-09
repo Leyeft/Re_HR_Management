@@ -12,13 +12,13 @@ Read this first when picking the project up. It says where things are, what's do
 | --- | --- |
 | **App** | Crewly, a Laravel 12 **REST API** + **React 18 SPA** (React Router, Redux Toolkit, Axios) + MySQL, with Sanctum auth |
 | **Code** | `hr-system/hr-system/` inside this repo |
-| **Repo / branch** | `github.com/Leyeft/Re_HR_Management`, branch **`main`** (git remote `personal`). Local `main` tracks `personal/main`. `react-frontend` is an old branch, identical to an earlier `main`; it can be deleted |
+| **Repo / branch** | `github.com/Leyeft/Re_HR_Management`, branch **`main`** (git remote `personal`). Local `main` tracks `personal/main`. `react-frontend` is an old branch, identical to an earlier `main`. **The user wants it kept: don't touch or delete it** |
 | **Live site** | **https://rehrmanagement-production.up.railway.app** (Railway). It redeploys automatically on every push to `main` |
 | **Tests** | **184 passing**: 31 unit + 153 API feature tests (`php artisan test`) |
 | **Course brief** | `hr-system/hr-system/public/logo/IT 341 Final Project 1S2025-2026 1.docx`. **Deliberately left untracked**: never commit it, because `public/` is served to the web |
 | **Estimated grade vs. brief** | About 83–90%, if the defense goes well (see section 5) |
 
-**State at the end of the last session:** everything was committed **and pushed** (last commit `4011b7d`, docs + code comments). Railway was redeploying with the holiday import, Clear all, and the docs.
+**State at the end of the last session (2026-11-09, evening):** everything is committed **and pushed** (last commit `8e4a236`). Railway was redeploying with salary, the seeder fix, the per-user theme and the separate Change password page. The local `php artisan serve` from that session may still be running.
 
 ---
 
@@ -84,6 +84,7 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 | 7b | Deployed to Railway | ✅ |
 
 **Features added after the rebuild (2026-11-08/09):**
+- **Change password page:** `/profile/password` (`pages/ChangePassword.jsx`); Profile only links to it.
 - **Salary:** monthly base salary (THB) on each employee (`employees.salary`, nullable). Seen by Admin, HR and the person themselves; **Heads don't see it** (user's choice). `EmployeeResource` leaves the key out for anyone else, checked per employee through `EmployeePolicy::viewSalary`. Changed only by Admin/HR via `editSalary`: never your own, and HR can't change an Admin's. It is in the Employees CSV (reports are Admin/HR only) but not in the PDF. DemoSeeder fills empty demo salaries. Changes appear in the activity log with old and new values (Admin/HR only). This is not full payroll: no tax, deductions or payslips.
 - **Dark mode:** a Light / Dark / System switch in the user menu (and the phone menu). The choice is saved **per user** in the browser by `store/themeSlice.js` (`localStorage` key `crewly-theme:<userId>`, plus `crewly-theme` for the one in use now). Signed out, it follows the device. It works by setting `data-theme="dark"` on `<html>`; `app.css` holds a second set of colour values for it. An inline script in `spa.blade.php` applies the choice before the page paints, so there is no flash.
 - **Leave rules:** working days (weekends and holidays skipped); allowance by years of service (3/10/15/20); sick leave with a 30-day cap, auto-approved; professional leave unlimited; HR-controlled rollover with a maximum; overlap check; cancel with a reason.
@@ -96,7 +97,8 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **Code comments:** every source file has a header comment; the Employee model has numbered sections; unused leftovers were removed.
 
 **Docs in the repo:**
-- [README.md](README.md): features, architecture, install, roles table, endpoints, ERD
+- [README.md](README.md): features, architecture, install, roles table, endpoints, ERD, "Future development" section (certificate uploads)
+- [USER_GUIDE.md](USER_GUIDE.md): plain-language guide for users and the teacher: every role, every rule, how to use each page. **Keep it in step** when features or rules change
 - [TESTING.md](TESTING.md): plan, unit/integration/system/security tests, bug log B01–B26
 - [DEPLOYMENT.md](DEPLOYMENT.md)
 - [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md): study guide and defense Q&A
@@ -108,20 +110,21 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 
 **For the user:**
 - **Defense prep:** read `docs/HOW_IT_WORKS.md`, especially sections 3 (a request traced through the files) and 7 (questions). The brief says "unable to explain own code: −25%", and live code changes may be requested.
-- **Click through the live site** and check the screens in both light and dark mode.
+- **Delete the duplicate empty "IT Support" department** on the live site. The old seeder re-created it after the user renamed theirs to "IT"; the seeder is fixed now, so it won't come back.
+- **Click through the live site** and check the screens in both light and dark mode. The user checked dark mode locally (the "System" option overflowing its box was fixed).
 - **Run the system test cases** by hand (ST01–ST21 in TESTING.md) and fill in the Result column.
 - **GitHub Classroom repo:** the brief's deliverable is the Classroom link (`origin` remote), but **pushing there fails with 403**, and it only has the old Blade version. Ask the teacher to fix access, or to accept the personal repo.
 
 **Suggested next tasks (not done yet):**
 - **Certificate uploads** (user request, 2026-11-09, parked as future development; it is in the README's "Future development" section). Before building it, ask the user about the open questions listed there. Storage matters: the Railway volume only covers `storage/app/public`, so private files would be lost on redeploy unless the volume mount moves to `/app/storage/app` or the files go in the database.
 - Set `baseUrl` in a Postman environment for the live site (the README already has the live URLs).
-- Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet.
+- Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet. It was explained to the user, who didn't ask for it yet.
 - **Real email** on the live site: the code is ready (2026-11-09). The `brevo` mailer sends over HTTPS, because Railway blocks SMTP on Hobby. The user still has to create a Brevo account, verify a sender, and set `MAIL_MAILER=brevo`, `BREVO_API_KEY` and `MAIL_FROM_ADDRESS` in Railway (DEPLOYMENT.md, section 5). Until then mail goes to the log. **Parked (2026-11-09):** Brevo sign-up got stuck at the SMS phone-verification step (the code never arrived). The user will retry later; meanwhile email stays on `log`, and the flows are demoed by copying the link from `storage/logs/laravel.log`.
 - **Registration:** the brief lists "Registration", but public sign-up was removed by design (HR creates accounts). The options are to ask the teacher, or to add a "Request an account" form that HR approves.
-- **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk if needed.
-- **Dark mode:** done (2026-11-09) but **not yet checked by eye**. Ask the user to look at every page in dark mode.
+- **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk (React Router 7, react-redux 9, Headless UI 2 and react-chartjs-2 5 all support it). The user asked; not done.
+- **Dark mode:** done (2026-11-09). The user has looked at it locally; still worth a full pass of every page.
 - **Online Testing doc** (claude.ai artifact from an early session): **outdated**. TESTING.md in the repo is current.
-- `react-frontend` branch: can be deleted.
+- **HR "Reset password" button** for an employee (HR sets a temporary password), for people who lost access to their email. Suggested, not requested yet.
 
 ---
 
@@ -139,11 +142,15 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **Soft deletes** on users, employees and departments; Employee IDs are never reused.
 - **Holidays:** no recurring flag; uploads replace same-date names only (not whole date ranges, which was explicitly decided).
 - **Email:** only password reset and verification are emailed; everything else is in-app notifications (user's choice). Brevo over HTTPS, not SMTP, because Railway blocks SMTP. The user decided **not** to restrict password reset to verified emails.
+- **Salary:** Heads must **not** see salaries (user's explicit choice). No one edits their own; HR can't edit an Admin's. It is a salary record, not payroll.
+- **DemoSeeder runs only on an empty database** (no accounts). Railway's Pre-Deploy still runs `db:seed` on every deploy, so the seeder must never change existing data. Don't reintroduce `firstOrCreate`-style top-ups.
+- **Theme** is per user on each browser (localStorage), not stored on the server. Signed out, it follows the device.
+- **Change password** lives on its own page (`/profile/password`), linked from Profile (user's request: not on the Profile page itself).
 - **Pushing:** push to `personal` (`Re_HR_Management`). Ask the user before pushing. Never push to `origin` (Classroom) without the user asking.
 - **Tooling notes for the next session:**
   - The `gh` CLI isn't installed.
   - Inline Python heredocs in Bash mangle backslashes in PHP namespaces. Use script files or the Edit tool.
-  - The Chrome extension wasn't connected, so the UI has **never been visually checked** by the assistant. Ask the user to check screens.
+  - The Chrome extension still wasn't connected on 2026-11-09, so the assistant has **never visually checked** the UI. The user checks screens. For pure front-end logic, a small Node script that imports the real slice with fake `localStorage` and `document` works (used for the theme).
 
 ---
 
@@ -168,6 +175,6 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 - **2026-11-03:** code review; 16 issues logged.
 - **2026-11-07:** fixes and leave features.
 - **2026-11-08:** the teacher rejected Inertia; rebuilt as a REST API + SPA (phases 1–7); deployed to Railway.
-- **2026-11-09:** holiday import / Clear all / no recurring; docs and comments.
+- **2026-11-09:** holiday import / Clear all / no recurring; docs and comments. Evening: dark mode (per user), live URLs in the README, Brevo email code (parked), certificate uploads noted as future work, salary, seeder fix, USER_GUIDE.md, Change password page. Old `../HANDOFF.md` (Inertia era) deleted.
 
 The full bug log is in TESTING.md (B01–B26). Every change is in `git log`.
