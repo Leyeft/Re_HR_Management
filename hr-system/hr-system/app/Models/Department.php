@@ -13,7 +13,9 @@ use App\Models\Concerns\LogsActivity;
  */
 class Department extends Model
 {
-    use HasFactory, LogsActivity, SoftDeletes;
+    use HasFactory;
+    use LogsActivity;
+    use SoftDeletes;
 
     public function activityLabel(): string
     {

@@ -59,8 +59,11 @@ class LeaveService
             throw new BusinessRuleException(sprintf(
                 'This annual leave is %d working day(s), but you only have %d day(s) left this year '
                 . '(allowance %d, used %d, pending %d). Please visit the HR office for more details, or if you need help.',
-                $days, $summary['annual']['remaining'], $summary['annual']['total'],
-                $summary['annual']['taken'], $summary['annual']['pending']
+                $days,
+                $summary['annual']['remaining'],
+                $summary['annual']['total'],
+                $summary['annual']['taken'],
+                $summary['annual']['pending']
             ), 'not_enough_leave');
         }
 
@@ -68,7 +71,9 @@ class LeaveService
             throw new BusinessRuleException(sprintf(
                 'This sick leave is %d working day(s), but you only have %d of your %d sick days left this year. '
                 . 'Please visit the HR office for more details, or if you need help.',
-                $days, $summary['sick']['remaining'], $summary['sick']['cap']
+                $days,
+                $summary['sick']['remaining'],
+                $summary['sick']['cap']
             ), 'not_enough_leave');
         }
 
@@ -215,7 +220,9 @@ class LeaveService
         // The Head if it was waiting for them; otherwise HR (pending or already approved).
         $this->notify(
             $wasStatus === 'pending_head' ? $this->headsOf($leave->department_id, $user) : $this->hrStaff($user),
-            $leave, 'cancelled', $user,
+            $leave,
+            'cancelled',
+            $user,
         );
 
         return $leave;

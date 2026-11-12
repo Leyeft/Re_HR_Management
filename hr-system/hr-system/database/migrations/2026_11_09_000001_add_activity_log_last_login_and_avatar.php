@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * - activity_logs: audit trail of who created / updated / deleted / restored what, and sign-ins.
      * - users.last_login_at / last_login_ip: shown on profiles.

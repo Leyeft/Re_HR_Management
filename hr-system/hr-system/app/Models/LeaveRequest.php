@@ -21,7 +21,8 @@ use Illuminate\Support\Carbon;
  */
 class LeaveRequest extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
+    use LogsActivity;
 
     // e.g. "#12 (Bobby Lim, 2026-11-23 → 2026-11-25)" in the activity log.
     public function activityLabel(): string

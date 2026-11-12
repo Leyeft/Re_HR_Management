@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // "brevo" mail transport: sends through Brevo's HTTPS API (config/mail.php, BREVO_API_KEY).
-        Mail::extend('brevo', fn () => (new BrevoTransportFactory)->create(
+        Mail::extend('brevo', fn () => (new BrevoTransportFactory())->create(
             new Dsn('brevo+api', 'default', config('services.brevo.key'))
         ));
 

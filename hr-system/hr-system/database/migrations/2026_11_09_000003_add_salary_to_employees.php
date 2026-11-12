@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * Monthly base salary (THB). Empty until HR fills it in.
  * Who may see or change it is decided in EmployeePolicy (viewSalary / editSalary).
  */
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {

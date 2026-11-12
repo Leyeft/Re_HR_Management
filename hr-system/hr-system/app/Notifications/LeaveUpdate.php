@@ -40,8 +40,14 @@ class LeaveUpdate extends Notification
         $leave = $this->leave;
         $who = $leave->employee?->user?->name ?? 'Someone';
         $days = $leave->days();
-        $what = sprintf('%d working day%s of %s leave (%s → %s)', $days, $days === 1 ? '' : 's', $leave->type,
-            $leave->start_date->format('j M'), $leave->end_date->format('j M Y'));
+        $what = sprintf(
+            '%d working day%s of %s leave (%s → %s)',
+            $days,
+            $days === 1 ? '' : 's',
+            $leave->type,
+            $leave->start_date->format('j M'),
+            $leave->end_date->format('j M Y')
+        );
 
         [$title, $message, $url] = match ($this->event) {
             'submitted' => ['New leave request', "{$who} asked for {$what}.", '/approvals'],

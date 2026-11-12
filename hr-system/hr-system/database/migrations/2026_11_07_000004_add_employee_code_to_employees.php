@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Human-readable employee code: department id * 100000 + a per-department
      * sequence, e.g. dept 1 -> 100001, 100002; dept 3 -> 300001.

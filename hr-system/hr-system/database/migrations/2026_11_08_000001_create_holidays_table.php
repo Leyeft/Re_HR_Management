@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Public holidays set by HR. Leave never counts a holiday (or a weekend).
      * `recurring` = same date every year (e.g. New Year's Day, Christmas).

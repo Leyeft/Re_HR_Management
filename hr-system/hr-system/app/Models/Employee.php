@@ -29,7 +29,9 @@ class Employee extends Model
 {
     /* ===== 1. Setup ===== */
 
-    use HasFactory, LogsActivity, SoftDeletes;
+    use HasFactory;
+    use LogsActivity;
+    use SoftDeletes;
 
     // Name used in the activity log.
     public function activityLabel(): string

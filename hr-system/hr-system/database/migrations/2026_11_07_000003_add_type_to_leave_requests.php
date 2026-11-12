@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Leave type: annual (counts against the yearly entitlement), sick (own 30-day
      * cap, auto-recorded), or professional (company benefit, no limit).

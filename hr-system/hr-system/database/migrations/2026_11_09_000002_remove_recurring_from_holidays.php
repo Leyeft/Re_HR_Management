@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Holidays are now plain dates uploaded each year (dates such as Songkran or
      * lunar holidays change from year to year), so the "same date every year"

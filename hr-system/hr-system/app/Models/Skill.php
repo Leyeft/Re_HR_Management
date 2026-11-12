@@ -12,7 +12,8 @@ use App\Models\Concerns\LogsActivity;
  */
 class Skill extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
+    use LogsActivity;
 
     public function activityLabel(): string
     {

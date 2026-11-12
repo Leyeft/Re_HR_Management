@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * - Department hierarchy: departments.parent_id → departments.id (self-referencing).
      * - Skills: skills + employee_skill pivot (many-to-many, with a proficiency level).

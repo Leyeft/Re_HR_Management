@@ -39,10 +39,14 @@ class EmployeeResource extends JsonResource
                 'level' => $skill->pivot->level,
             ])->values()),
             'deleted_at' => $this->deleted_at?->toIso8601String(),
-            'leave_summary' => $this->when($this->resource->getAttribute('leave_summary') !== null,
-                fn () => $this->resource->getAttribute('leave_summary')),
-            'is_last_head' => $this->when($this->resource->getAttribute('is_last_head') !== null,
-                fn () => $this->resource->getAttribute('is_last_head')),
+            'leave_summary' => $this->when(
+                $this->resource->getAttribute('leave_summary') !== null,
+                fn () => $this->resource->getAttribute('leave_summary')
+            ),
+            'is_last_head' => $this->when(
+                $this->resource->getAttribute('is_last_head') !== null,
+                fn () => $this->resource->getAttribute('is_last_head')
+            ),
         ];
     }
 }
