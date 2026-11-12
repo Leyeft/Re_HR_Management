@@ -451,6 +451,10 @@ Planned features that are not built yet:
 - **Certificate uploads.** Employees upload a PDF certificate for an achievement or training (title, issuer, date earned, optional expiry) on their profile. The plan:
   - Files are stored **privately**, not in the public folder like profile photos, and downloaded only through an API route that checks who is asking.
   - Open questions: whether HR verifies each certificate (Pending / Verified / Rejected, like leave requests), who can view them (owner, their Head, HR, Admin), and where the files live on the hosted site, which only keeps the public storage folder between deploys today.
+- **Let HR and Admin accounts be Heads.** Today an HR or Admin account can't also be Head of Department, so the two leave approval steps are always done by different people. The trade-off is that a real HR Manager, who leads the HR department and needs HR access, can't be modelled: as a Head they lose HR powers their own staff have. The plan:
+  - Allow HR and Admin to hold the Head rank.
+  - Keep separation of duties: the person who gave the Head approval can't also give the HR approval on the same request, so a different HR person signs off.
+  - Nobody approves their own leave (already true for Heads).
 
 ---
 

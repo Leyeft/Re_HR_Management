@@ -118,12 +118,13 @@ The SPA rebuild was done in phases, after the teacher rejected Inertia on 2026-1
 **Suggested next tasks (not done yet):**
 - **Certificate uploads** (user request, 2026-11-09, parked as future development; it is in the README's "Future development" section). Before building it, ask the user about the open questions listed there. Storage matters: the Railway volume only covers `storage/app/public`, so private files would be lost on redeploy unless the volume mount moves to `/app/storage/app` or the files go in the database.
 - Set `baseUrl` in a Postman environment for the live site (the README already has the live URLs).
-- Run **Laravel Pint** (PSR-12 formatting; the brief names PSR-12). Not done yet. It was explained to the user, who didn't ask for it yet.
+- **Laravel Pint:** done (2026-11-13). `pint.json` sets the `psr12` preset; `./vendor/bin/pint --test` passes on all 127 PHP files. Run `./vendor/bin/pint` after PHP changes.
 - **Real email** on the live site: the code is ready (2026-11-09). The `brevo` mailer sends over HTTPS, because Railway blocks SMTP on Hobby. The user still has to create a Brevo account, verify a sender, and set `MAIL_MAILER=brevo`, `BREVO_API_KEY` and `MAIL_FROM_ADDRESS` in Railway (DEPLOYMENT.md, section 5). Until then mail goes to the log. **Parked (2026-11-09):** Brevo sign-up got stuck at the SMS phone-verification step (the code never arrived). The user will retry later; meanwhile email stays on `log`, and the flows are demoed by copying the link from `storage/logs/laravel.log`.
 - **Registration:** the brief lists "Registration", but public sign-up was removed by design (HR creates accounts). The options are to ask the teacher, or to add a "Request an account" form that HR approves.
 - **React version:** the brief says "React > 18"; the app uses 18.2. Upgrading to 19 is low risk (React Router 7, react-redux 9, Headless UI 2 and react-chartjs-2 5 all support it). The user asked; not done.
 - **Dark mode:** done (2026-11-09). The user has looked at it locally; still worth a full pass of every page.
 - **Online Testing doc** (claude.ai artifact from an early session): **outdated**. TESTING.md in the repo is current.
+- **HR/Admin as Heads** (user, 2026-11-12, added to the README's "Future development"): a real HR Manager can't be modelled today. Plan: drop the HR/Admin-can't-be-Head rule (`EmployeeService::ensureHeadIsEmployeeRole`, the rank lock in `EmployeeForm.jsx`, `test_hr_cannot_also_be_head`), and instead block the same person from giving both the Head and HR approval on one request. Not built yet.
 - **HR "Reset password" button** for an employee (HR sets a temporary password), for people who lost access to their email. Suggested, not requested yet.
 
 ---
